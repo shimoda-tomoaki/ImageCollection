@@ -1,0 +1,35 @@
+<resources>
+    <string name="app_name">画像収集アプリ</string>
+
+    <string name="title_section1">画像リスト</string>
+    <string name="title_section2">ブラウザ</string>
+    <string name="title_section3">設定</string>
+    <string name="title_section4">トップへ戻る</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_example">sample</string>
+
+    <string name="main_action_settings1">フォルダを作る</string>
+    <string name="main_action_settings2">フォルダリストを見る</string>
+    <string name="main_action_settings3">管理パスワードを変更する</string>
+
+
+    <string name="action_settings1">画像サイズ：小</string>
+    <string name="action_settings2">画像サイズ：中</string>
+    <string name="action_settings3">画像サイズ：大</string>
+    <string name="title_activity_web_view">WebViewActivity</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="title_activity_list">ListActivity</string>
+    <string name="title_activity_image">ImageActivityActivity</string>
+    <string name="title_activity_main_list">画像収集アプリ</string>
+    <string name="title_activity_input_category">InputCategory</string>
+    <string name="title_activity_setting">SettingActivity</string>
+    <string name="title_activity_category_list">CategoryListActivity</string>
+
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="action_settings">Settings</string>
+</resources>
