@@ -6,13 +6,10 @@ import android.database.sqlite.SQLiteDatabase;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -33,7 +30,7 @@ public class CategoryListActivity extends ActionBarActivity {
         SQLiteDatabase db = DBTools.getDatabase(this);
         Cursor cursor = db.query("category", new String[]{"_id", "category", "password", "isLocked", "isUnpublished"}, null, null, null, null, "_id");
 
-        mItemList = new ArrayList<CategoryListItem>();
+        mItemList = new ArrayList();
         if (cursor.moveToFirst()) {
             do {
                 int id = cursor.getInt(cursor.getColumnIndex("_id"));
@@ -46,29 +43,22 @@ public class CategoryListActivity extends ActionBarActivity {
             } while(cursor.moveToNext());
         }
 
-        mAdapter = new CategoryListAdapter(this, R.layout.category_list_layout, mItemList);
+        if (mItemList.size() == 0) {
+            TextView noFolderMessageView = (TextView) findViewById(R.id.noFolderMessageView);
+            noFolderMessageView.setVisibility(View.VISIBLE);
+        } else {
+            mAdapter = new CategoryListAdapter(this, R.layout.category_list_layout, mItemList);
 
-        mListView = (ListView) findViewById(R.id.listView2);
-        mListView.setAdapter(mAdapter);
-
-
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_category_list, menu);
-        return true;
+            mListView = (ListView) findViewById(R.id.listView2);
+            mListView.setAdapter(mAdapter);
+            mListView.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }
@@ -109,7 +99,7 @@ public class CategoryListActivity extends ActionBarActivity {
 
         @Override
         public View getView(final int position, View convertView, ViewGroup parent) {
-            final CategoryListItem item = (CategoryListItem)getItem(position);
+            final CategoryListItem item = getItem(position);
 
             if (null == convertView) {
                 convertView = mLayoutInflater.inflate(R.layout.category_list_layout, null);
@@ -120,7 +110,7 @@ public class CategoryListActivity extends ActionBarActivity {
             ((TextView) convertView.findViewById(R.id.stateTextView)).setText("設定：" + item.getState());
 
 
-            ((Button) convertView.findViewById(R.id.button4)).setOnClickListener(new View.OnClickListener() {
+            (convertView.findViewById(R.id.button4)).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
 

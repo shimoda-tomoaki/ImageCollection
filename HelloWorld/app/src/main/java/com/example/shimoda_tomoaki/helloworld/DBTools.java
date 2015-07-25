@@ -18,16 +18,15 @@ public class DBTools {
 
     public static void makeTable(Context context) {
         SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase("data/data/" + context.getPackageName() + "/Sample.db", null);
-
-        db.execSQL("DROP TABLE IF EXISTS " + R.string.table_category);
-        db.execSQL("CREATE TABLE " + R.string.table_category
-                + " (" + R.string.column_id + " INTEGER PRIMARY KEY, category TEXT NOT NULL, password TEXT, isLocked INTEGER DEFAULT 0, isUnpublished INTEGER DEFAULT 0)");
-        db.execSQL("DROP TABLE IF EXISTS " + R.string.table_url);
-        db.execSQL("CREATE TABLE " + R.string.table_category
-                + " (" + R.string.column_id + " INTEGER PRIMARY KEY, categoryId INTEGER NOT NULL, url TEXT NOT NULL, created_date DATETIME DEFAULT CURRENT_TIMESTAMP)");
-        db.execSQL("DROP TABLE IF EXISTS " + R.string.table_image);
-        db.execSQL("CREATE TABLE " + R.string.table_image
-                + " (" + R.string.column_id + " INTEGER PRIMARY KEY, categoryId INTEGER NOT NULL, image BLOB NOT NULL, created_date DATETIME DEFAULT CURRENT_TIMESTAMP)");
+        db.execSQL("DROP TABLE IF EXISTS " + context.getString(R.string.table_category));
+        db.execSQL("CREATE TABLE " + context.getString(R.string.table_category)
+                + " (" + context.getString(R.string.column_id) + " INTEGER PRIMARY KEY, category TEXT NOT NULL, password TEXT, isLocked INTEGER DEFAULT 0, isUnpublished INTEGER DEFAULT 0)");
+        db.execSQL("DROP TABLE IF EXISTS " + context.getString(R.string.table_url));
+        db.execSQL("CREATE TABLE " + context.getString(R.string.table_url)
+                + " (" + context.getString(R.string.column_id) + " INTEGER PRIMARY KEY, categoryId INTEGER NOT NULL, url TEXT NOT NULL, created_date DATETIME DEFAULT CURRENT_TIMESTAMP)");
+        db.execSQL("DROP TABLE IF EXISTS " + context.getString(R.string.table_image));
+        db.execSQL("CREATE TABLE " + context.getString(R.string.table_image)
+                + " (" + context.getString(R.string.column_id) + " INTEGER PRIMARY KEY, categoryId INTEGER NOT NULL, image BLOB NOT NULL, created_date DATETIME DEFAULT CURRENT_TIMESTAMP)");
     }
 
     public boolean isExistCategory(int categoryId, String category) {
