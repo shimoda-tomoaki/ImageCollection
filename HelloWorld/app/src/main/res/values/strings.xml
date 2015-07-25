@@ -32,4 +32,22 @@
 <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="action_settings">Settings</string>
+
+    <string name="column_id">_id</string>
+
+    <string name="table_category">category</string>
+    <string name="column_category_category">category</string>
+    <string name="column_category_password">password</string>
+    <string name="column_category_is_locked">is_locked</string>
+    <string name="column_category_is_unpublished">is_unpublished</string>
+
+    <string name="table_url">url</string>
+    <string name="column_url_category_id">category_id</string>
+    <string name="column_url_url">url</string>
+    <string name="column_url_created_date">created_date</string>
+
+    <string name="table_image">image</string>
+    <string name="column_image_category_id">category_id</string>
+    <string name="column_image_image">image</string>
+    <string name="column_image_created_date">created_date</string>
 </resources>
