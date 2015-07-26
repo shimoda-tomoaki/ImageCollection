@@ -97,7 +97,7 @@ public class TopActivity extends ActionBarActivity {
 
     public void selectUnpublishedActivity(String inputPassword) {
         SQLiteDatabase db = DBTools.getDatabase(this);
-        Cursor cursor = db.query("category", new String[]{"_id", "category"}, "password = ?", new String[]{inputPassword}, null, null, null);
+        Cursor cursor = db.query("category", new String[]{"_id", "category"}, "password = ? AND isUnpublished = ?", new String[]{inputPassword, "1"}, null, null, null);
 
         if(cursor.moveToFirst()) {
             Intent intent = new Intent(getApplicationContext(), FragmentActivity.class);

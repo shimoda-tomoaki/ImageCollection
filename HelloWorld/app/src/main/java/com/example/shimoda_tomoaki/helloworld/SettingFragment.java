@@ -1,7 +1,9 @@
 package com.example.shimoda_tomoaki.helloworld;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -110,9 +112,21 @@ public class SettingFragment extends Fragment {
         removeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DBTools.removeCategory(getActivity(), mCategoryId);
-
-                startActivity(new Intent(getActivity(), TopActivity.class));
+                AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity());
+                dialogBuilder
+                        .setTitle("本当に削除しますか?")
+                        .setPositiveButton("削除", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                DBTools.removeCategory(getActivity(), mCategoryId);
+                                startActivity(new Intent(getActivity(), TopActivity.class));
+                            }
+                        })
+                        .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {}
+                        })
+                        .show();
             }
         });
 
@@ -156,16 +170,6 @@ public class SettingFragment extends Fragment {
         mListener = null;
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
     public interface OnFragmentInteractionListener {
         public void onSettingFragmentInteraction(Uri uri);
     }

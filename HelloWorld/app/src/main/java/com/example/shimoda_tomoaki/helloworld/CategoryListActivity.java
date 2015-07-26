@@ -1,6 +1,8 @@
 package com.example.shimoda_tomoaki.helloworld;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.v7.app.ActionBarActivity;
@@ -115,13 +117,25 @@ public class CategoryListActivity extends ActionBarActivity {
             (convertView.findViewById(R.id.button4)).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    DBTools.removeCategory(getApplicationContext(), item.getCategoryId());
-                    mAdapter.remove(mItemList.get(position));
+                    new AlertDialog.Builder(getContext())
+                            .setTitle("本当に削除しますか?")
+                            .setPositiveButton("削除", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    DBTools.removeCategory(getApplicationContext(), item.getCategoryId());
+                                    mAdapter.remove(mItemList.get(position));
 
-                    if (mItemList.size() == 0) {
-                        TextView noFolderMessageView = (TextView) findViewById(R.id.noFolderMessageView);
-                        noFolderMessageView.setVisibility(View.VISIBLE);
-                    }
+                                    if (mItemList.size() == 0) {
+                                        TextView noFolderMessageView = (TextView) findViewById(R.id.noFolderMessageView);
+                                        noFolderMessageView.setVisibility(View.VISIBLE);
+                                    }
+                                }
+                            })
+                            .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {}
+                            })
+                            .show();
                 }
             });
 
