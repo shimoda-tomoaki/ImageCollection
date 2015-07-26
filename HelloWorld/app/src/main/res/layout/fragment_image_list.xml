@@ -47,4 +47,20 @@
             android:textSize="20dp" />
 
     </FrameLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/no_image_message_frame"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="保存した画像はありません。\nブラウザで画像を見つけ、\n長押しして保存しましょう。"
+            android:id="@+id/no_image_message_text_view"
+            android:layout_gravity="center"
+            android:textColor="#ffaaaaaa" />
+    </FrameLayout>
 </RelativeLayout>

@@ -27,6 +27,8 @@ public class CategoryListActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_category_list);
 
+        getSupportActionBar().setTitle("フォルダリスト");
+
         SQLiteDatabase db = DBTools.getDatabase(this);
         Cursor cursor = db.query("category", new String[]{"_id", "category", "password", "isLocked", "isUnpublished"}, null, null, null, null, "_id");
 
@@ -113,9 +115,13 @@ public class CategoryListActivity extends ActionBarActivity {
             (convertView.findViewById(R.id.button4)).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
                     DBTools.removeCategory(getApplicationContext(), item.getCategoryId());
                     mAdapter.remove(mItemList.get(position));
+
+                    if (mItemList.size() == 0) {
+                        TextView noFolderMessageView = (TextView) findViewById(R.id.noFolderMessageView);
+                        noFolderMessageView.setVisibility(View.VISIBLE);
+                    }
                 }
             });
 

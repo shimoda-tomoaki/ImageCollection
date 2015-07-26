@@ -83,7 +83,11 @@ public class ImageListFragment extends Fragment {
 
         mImageViewList = getImageList();
 
-        setImageView5();
+        if (mImageViewList.size() == 0) {
+            mRootView.findViewById(R.id.no_image_message_frame).setVisibility(View.VISIBLE);
+        } else {
+            setImageView5();
+        }
 
         return mRootView;
     }
@@ -208,7 +212,7 @@ public class ImageListFragment extends Fragment {
                 });
 
                 imageView.setImageBitmap(bitmap);
-                int imageWidth = displaySize.x < 3 * bitmap.getWidth() ? displaySize.x : 3 * bitmap.getWidth();
+                int imageWidth = displaySize.x < 4 * bitmap.getWidth() ? displaySize.x : 4 * bitmap.getWidth();
                 double scale = (double) imageWidth / (double) bitmap.getWidth();
                 imageView.setLayoutParams(new FrameLayout.LayoutParams((int) (scale * (double) bitmap.getWidth()), (int) (scale * (double) bitmap.getHeight()), Gravity.CENTER));
 
@@ -226,6 +230,10 @@ public class ImageListFragment extends Fragment {
                         mImageViewList.remove(myImageView);
                         setImageView5();
                         frameLayout.setVisibility(View.GONE);
+
+                        if (mImageViewList.size() == 0) {
+                            mRootView.findViewById(R.id.no_image_message_frame).setVisibility(View.VISIBLE);
+                        }
                     }
                 });
             }
