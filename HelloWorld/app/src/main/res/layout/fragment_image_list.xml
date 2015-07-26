@@ -41,7 +41,10 @@
             android:text="削除"
             android:id="@+id/button"
             android:layout_gravity="center_horizontal|bottom"
-            android:layout_margin="20dp" />
+            android:layout_margin="20dp"
+            android:background="#00000000"
+            android:textColor="#ffc80000"
+            android:textSize="20dp" />
 
     </FrameLayout>
 </RelativeLayout>

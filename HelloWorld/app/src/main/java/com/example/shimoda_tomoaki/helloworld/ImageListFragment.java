@@ -145,11 +145,14 @@ public class ImageListFragment extends Fragment {
                 if (imageView.getHeight(mType) < minHeight) minHeight = imageView.getHeight(mType);
             }
             int height = minHeight > minMinHeight ? minHeight : minMinHeight;
+            if (imageList.size() < mType.getNumImage() && height > getMaxHeight(mType)) height = getMaxHeight(mType);
             int sumWidth = 0;
             for (MyImageView imageView : imageList) {
                 sumWidth += (int) (((double) height / (double) imageView.getHeight()) * (double) imageView.getWidth());
             }
             LinearLayout imageRowView = (LinearLayout) inflater.inflate(R.layout.image_row_view, linearLayout, false);
+            imageRowView.setGravity(mType == MyEnum.LARGE ? Gravity.CENTER_HORIZONTAL : Gravity.LEFT);
+
             double baseScale = displaySize.x > sumWidth ? 1.0 : (double) displaySize.x / (double) sumWidth;
 
             for(MyImageView myImageView : imageList) {
@@ -159,7 +162,6 @@ public class ImageListFragment extends Fragment {
                 imageView = getImageView(imageView, myImageView);
                 imageView.setLayoutParams(new LinearLayout.LayoutParams((int) (scale * (double) bitmap.getWidth()) + 1, (int) (scale * (double) bitmap.getHeight()) + 1));
                 imageRowView.addView(imageView);
-                //imageRowView.setDividerDrawable();
             }
 
             linearLayout.addView(imageRowView);
@@ -206,13 +208,14 @@ public class ImageListFragment extends Fragment {
                 });
 
                 imageView.setImageBitmap(bitmap);
-                int imageWidth = displaySize.x < 2 * bitmap.getWidth() ? displaySize.x : 2 * bitmap.getWidth();
-                double scale = (double)imageWidth / (double)bitmap.getWidth();
+                int imageWidth = displaySize.x < 3 * bitmap.getWidth() ? displaySize.x : 3 * bitmap.getWidth();
+                double scale = (double) imageWidth / (double) bitmap.getWidth();
                 imageView.setLayoutParams(new FrameLayout.LayoutParams((int) (scale * (double) bitmap.getWidth()), (int) (scale * (double) bitmap.getHeight()), Gravity.CENTER));
 
                 imageView.setOnClickListener(new View.OnClickListener() {
                     @Override
-                    public void onClick(View v) {}
+                    public void onClick(View v) {
+                    }
                 });
 
                 button.setOnClickListener(new View.OnClickListener() {
@@ -270,6 +273,19 @@ public class ImageListFragment extends Fragment {
             return 2 * displaySize.x / 3;
         } else {
             return displaySize.x / 2;
+        }
+    }
+
+    private int getMaxHeight(MyEnum type) {
+        Point displaySize = new Point();
+        getActivity().getWindowManager().getDefaultDisplay().getSize(displaySize);
+
+        if (type == MyEnum.SMALL) {
+            return displaySize.y / 8;
+        } else if  (type == MyEnum.NORMAL) {
+            return displaySize.y / 5;
+        } else {
+            return displaySize.y;
         }
     }
 
