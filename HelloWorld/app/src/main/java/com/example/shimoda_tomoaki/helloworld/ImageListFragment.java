@@ -5,7 +5,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 import android.graphics.Point;
 import android.net.Uri;
 import android.os.Bundle;
@@ -16,6 +15,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -63,9 +63,7 @@ public class ImageListFragment extends Fragment {
         return fragment;
     }
 
-    public ImageListFragment() {
-        // Required empty public constructor
-    }
+    public ImageListFragment() {}
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -178,13 +176,11 @@ public class ImageListFragment extends Fragment {
         SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase("data/data/" + getActivity().getPackageName() + "/Sample.db", null);
         Cursor cursor = db.query("image", new String[]{"_id", "categoryId", "image", "created_date"}, "categoryId = ?", new String[]{"" + mCategoryId}, null, null, "_id");
 
-        if (cursor.moveToFirst()) {
-            do {
-                final byte blob[] = cursor.getBlob(cursor.getColumnIndex("image"));
-                final Bitmap bitmap = BitmapFactory.decodeByteArray(blob, 0, blob.length);
+        while (cursor.moveToNext()) {
+            final byte blob[] = cursor.getBlob(cursor.getColumnIndex("image"));
+            final Bitmap bitmap = BitmapFactory.decodeByteArray(blob, 0, blob.length);
 
-                imageViewList.add(new MyImageView(cursor.getInt(cursor.getColumnIndex("_id")), bitmap));
-            } while (cursor.moveToNext());
+            imageViewList.add(new MyImageView(cursor.getInt(cursor.getColumnIndex("_id")), bitmap));
         }
 
         return imageViewList;
@@ -297,26 +293,15 @@ public class ImageListFragment extends Fragment {
         }
     }
 
-    private Bitmap resizeBitmap(Bitmap original, double scale) {
-        Matrix matrix = new Matrix();
-        matrix.postScale((float) scale, (float) scale);
-
-        return Bitmap.createBitmap(original, 0, 0, original.getWidth(), original.getHeight(), matrix, true);
+    public boolean cancelPreviewMode() {
+        final FrameLayout frameLayout = (FrameLayout) mRootView.findViewById(R.id.dialog_frame_layout);
+        if (frameLayout.getVisibility() == View.VISIBLE) {
+            frameLayout.setVisibility(View.GONE);
+            return true;
+        }
+        return false;
     }
 
-    private Bitmap resizeBitmapWithMaxWidth(Bitmap original, int maxWidth) {
-        double scale = (double)maxWidth / (double) original.getWidth();
-        if (scale > 1) return original;
-
-        return resizeBitmap(original, scale);
-    }
-
-    private Bitmap resizeBitmapWithMaxHeight(Bitmap original, int maxHeight) {
-        double scale = (double)maxHeight/(double)original.getHeight();
-        if (scale > 1) return original;
-
-        return resizeBitmap(original, scale);
-    }
 
     public class MyImageView {
         private int mId;
@@ -334,5 +319,4 @@ public class ImageListFragment extends Fragment {
         public int getHeight(MyEnum type) { return (int)(type.getScale() * (double)mBitmap.getHeight()); }
         public int getWidth(MyEnum type) { return (int)(type.getScale() * (double)mBitmap.getWidth()); }
     }
-
 }

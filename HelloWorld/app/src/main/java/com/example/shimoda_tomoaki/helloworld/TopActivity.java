@@ -1,31 +1,36 @@
 package com.example.shimoda_tomoaki.helloworld;
 
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.DialogFragment;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.support.v7.app.ActionBarActivity;
+import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.List;
 
-public class TopActivity extends ActionBarActivity {
-    private ListView mListView;
-    private ArrayList<String> mDataList;
-    private ArrayAdapter<String> mAdapter;
+public class TopActivity extends Activity {
     private int mCategoryId;
     private String mCategory;
     private String mPassword;
-    private String mSettingPassword;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,30 +43,24 @@ public class TopActivity extends ActionBarActivity {
             DBTools.makeTable(this);
         }
 
-        mSettingPassword = preference.getString("SettingPassword", "");
-        if (mSettingPassword.isEmpty()) {
+        if (!preference.getString("SettingPassword", "").isEmpty()) {
             DialogFragment newFragment = new InputPasswordCustomDialog();
             newFragment.show(getFragmentManager(), InputPasswordCustomDialog.SITUATION_INPUT_SETTING_PASSWORD);
         }
 
-        getSupportActionBar().setTitle("画像収集アプリ");
+        getActionBar().setTitle("画像収集アプリ");
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main_list, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings1) {
             DialogFragment newFragment = new InputCategoryDialog();
             newFragment.show(getFragmentManager(), null);
@@ -98,6 +97,7 @@ public class TopActivity extends ActionBarActivity {
     public void selectUnpublishedActivity(String inputPassword) {
         SQLiteDatabase db = DBTools.getDatabase(this);
         Cursor cursor = db.query("category", new String[]{"_id", "category"}, "password = ? AND isUnpublished = ?", new String[]{inputPassword, "1"}, null, null, null);
+        db.close();
 
         if(cursor.moveToFirst()) {
             Intent intent = new Intent(getApplicationContext(), FragmentActivity.class);
@@ -130,48 +130,205 @@ public class TopActivity extends ActionBarActivity {
     }
 
     public void categoryListSet() {
-        SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase("data/data/" + getPackageName() + "/Sample.db", null);
-        Cursor cursor = db.query("category", new String[]{"category", "isUnpublished"}, null, null, null, null, null);
+        ListView listView;
+        FolderListItemAdapter folderListItemAdapter;
+        ArrayList<FolderListItem> dataList;
 
-        mDataList = new ArrayList<String>();
-        if (cursor.moveToFirst()) {
-            do {
-                if(cursor.getInt(cursor.getColumnIndex("isUnpublished")) == 0) mDataList.add(cursor.getString(cursor.getColumnIndex("category")));
-            } while (cursor.moveToNext());
+        listView = (ListView) findViewById(R.id.listView);
+
+        SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase("data/data/" + getPackageName() + "/Sample.db", null);
+        Cursor cursor = db.query("category", new String[]{"_id", "category", "password", "isLocked", "isUnpublished"}, null, null, null, null, null);
+        db.close();
+
+        dataList = new ArrayList<>();
+        while (cursor.moveToNext()) {
+            dataList.add(new FolderListItem(cursor.getInt(cursor.getColumnIndex("isLocked")) == 0 ? FolderItemType.NORMAL_FOLDER : FolderItemType.LOCK_FOLDER,
+                    cursor.getInt(cursor.getColumnIndex("_id")),
+                    cursor.getString(cursor.getColumnIndex("category")),
+                    cursor.getString(cursor.getColumnIndex("password"))));
         }
 
-        mDataList.add("非表示フォルダ");
+        if (dataList.size() == 0) {
+            dataList.add(new FolderListItem(FolderItemType.NO_FOLDER_MESSAGE));
+        }
 
-        mListView = (ListView) findViewById(R.id.listView);
-        mAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, mDataList);
-        mListView.setAdapter(mAdapter);
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (position == mDataList.size() - 1) {
-                    DialogFragment newFragment = new InputPasswordCustomDialog();
-                    newFragment.show(getFragmentManager(), InputPasswordCustomDialog.SITUATION_SELECT_UNPUBLISHED_CATEGORY);
-                } else {
-                    mCategory = mDataList.get(position);
+        dataList.add(new FolderListItem(FolderItemType.HIDE_FOLDER));
 
-                    SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase("data/data/" + getPackageName() + "/Sample.db", null);
-                    Cursor cursor = db.query("category", new String[]{"_id", "password", "isLocked", "isUnpublished"}, "category = ?", new String[]{mCategory}, null, null, null);
+        folderListItemAdapter = new FolderListItemAdapter(this, R.layout.folder_item_list_layout, dataList);
+        listView.setAdapter(folderListItemAdapter);
+    }
 
-                    if (cursor.moveToFirst()) {
-                        mCategoryId = cursor.getInt(cursor.getColumnIndex("_id"));
-                        mPassword = cursor.getString(cursor.getColumnIndex("password"));
-                        if (cursor.getInt(cursor.getColumnIndex("isLocked")) == 0) {
+    enum FolderItemType {NORMAL_FOLDER, LOCK_FOLDER, NO_FOLDER_MESSAGE, HIDE_FOLDER}
+
+    public class FolderListItem {
+        private static final String NO_FOLDER_MESSAGE = "表示するフォルダはありません\n右上のメニューからフォルダを作りましょう";
+        private static final String HIDE_ITEM_MESSAGE = "非表示フォルダ";
+
+        public FolderItemType mType;
+        public int mCategoryId = -1;
+        public String mItemName = "";
+        public String mPassword = "";
+
+        public FolderListItem(FolderItemType type) {
+            mType = type;
+            if (type == FolderItemType.NO_FOLDER_MESSAGE) {
+                mItemName = NO_FOLDER_MESSAGE;
+            } else if (type == FolderItemType.HIDE_FOLDER) {
+                mItemName = HIDE_ITEM_MESSAGE;
+            }
+        }
+        public FolderListItem(FolderItemType type, int categoryId, String itemName, String password) {
+            mType = type;
+            mCategoryId = categoryId;
+            mItemName = itemName;
+            mPassword = password;
+        }
+
+        public FolderItemType getType() { return mType; }
+        public int getCategoryId() { return mCategoryId; }
+        public String getItemName() { return mItemName; }
+        public String getPassword() { return mPassword; }
+
+    }
+
+    public class FolderListItemAdapter extends ArrayAdapter<FolderListItem> {
+        private LayoutInflater mLayoutInflater;
+
+        public FolderListItemAdapter(Context context, int textViewResourceId, List<FolderListItem> objects) {
+            super(context, textViewResourceId, objects);
+            mLayoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            FolderListItem item = getItem(position);
+
+            if (convertView == null) {
+                convertView = mLayoutInflater.inflate(R.layout.folder_item_list_layout, null);
+            }
+
+            TextView textView = (TextView) convertView.findViewById(R.id.titleTextView);
+            textView.setText(item.getItemName());
+
+            ImageView lockIconImageView = (ImageView) convertView.findViewById(R.id.lockMarkImageView);
+
+            final int categoryId = item.getCategoryId();
+            final String category = item.getItemName();
+            final String password = item.getPassword();
+
+            switch (item.getType()) {
+                case NORMAL_FOLDER:
+                    convertView.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
                             Intent intent = new Intent(getApplicationContext(), FragmentActivity.class);
-                            intent.putExtra("category", mCategory);
-                            intent.putExtra("categoryId", mCategoryId);
+                            intent.putExtra("category", category);
+                            intent.putExtra("categoryId", categoryId);
                             startActivity(intent);
-                        } else {
+                        }
+                    });
+                    textView.setTextColor(Color.BLACK);
+                    textView.setTextSize(20.0f);
+                    lockIconImageView.setVisibility(View.GONE);
+                    break;
+                case LOCK_FOLDER:
+                    convertView.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            mCategoryId = categoryId;
+                            mCategory = category;
+                            mPassword = password;
                             DialogFragment newFragment = new InputPasswordCustomDialog();
                             newFragment.show(getFragmentManager(), InputPasswordCustomDialog.SITUATION_SELECT_LOCKED_CATEGORY);
                         }
-                    }
-                }
+                    });
+                    textView.setTextColor(Color.BLACK);
+                    textView.setTextSize(20.0f);
+                    lockIconImageView.setVisibility(View.VISIBLE);
+                    lockIconImageView.setImageResource(R.drawable.ic_action_lock_closed);
+                    break;
+                case HIDE_FOLDER:
+                    convertView.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            DialogFragment newFragment = new InputPasswordCustomDialog();
+                            newFragment.show(getFragmentManager(), InputPasswordCustomDialog.SITUATION_SELECT_UNPUBLISHED_CATEGORY);
+                        }
+                    });
+                    textView.setTextColor(Color.GRAY);
+                    textView.setTextSize(18.0f);
+                    lockIconImageView.setVisibility(View.GONE);
+                    break;
+                case NO_FOLDER_MESSAGE:
+                    convertView.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {}
+                    });
+
+                    textView.setTextColor(Color.GRAY);
+                    textView.setTextSize(15.0f);
+                    lockIconImageView.setVisibility(View.GONE);
+                    break;
+                default:
             }
-        });
+
+            return convertView;
+        }
+    }
+
+    public static class ChangePasswordDialog extends DialogFragment {
+        private String mOldPassword = "";
+        private String mNewPassword = "";
+
+        @Override
+        public void setArguments(Bundle bundle) {
+            mOldPassword = bundle.getString("oldPassword", "");
+            mNewPassword = bundle.getString("newPassword", "");
+        }
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+
+            LayoutInflater inflater = (LayoutInflater)getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            final View content = inflater.inflate(R.layout.change_password_dialog, null);
+
+            builder.setView(content);
+            ((EditText) content.findViewById(R.id.input_old_password_edit_text)).setText(mOldPassword);
+            ((EditText) content.findViewById(R.id.input_new_password_edit_text)).setText(mNewPassword);
+
+            builder.setTitle("管理パスワードを変更します").setPositiveButton("決定", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    String oldPassword = ((EditText) content.findViewById(R.id.input_old_password_edit_text)).getText().toString();
+                    String newPassword = ((EditText) content.findViewById(R.id.input_new_password_edit_text)).getText().toString();
+
+                    SharedPreferences preference = getActivity().getSharedPreferences("Preference Name", MODE_PRIVATE);
+                    if (!oldPassword.equals(preference.getString("SettingPassword", ""))) {
+                        Toast.makeText(getActivity(), "変更前のパスワードが間違っています", Toast.LENGTH_SHORT).show();
+                    } else if (newPassword.isEmpty()) {
+                        Toast.makeText(getActivity(), "変更後のパスワードを入力してください", Toast.LENGTH_SHORT).show();
+                    } else {
+                        preference.edit().putString("SettingPassword", newPassword).apply();
+                        dismiss();
+                        return;
+                    }
+
+                    DialogFragment newFragment = new ChangePasswordDialog();
+
+                    Bundle args = new Bundle();
+                    args.putString("oldPassword", oldPassword);
+                    args.putString("newPassword", newPassword);
+                    newFragment.setArguments(args);
+
+                    newFragment.show(getFragmentManager(), null);
+                }
+            }).setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    dismiss();
+                }
+            });
+
+            return builder.create();
+        }
     }
 }

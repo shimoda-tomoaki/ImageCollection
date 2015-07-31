@@ -1,11 +1,11 @@
 package com.example.shimoda_tomoaki.helloworld;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class CategoryListActivity extends ActionBarActivity {
+public class CategoryListActivity extends Activity {
     ListView mListView;
     CategoryListAdapter mAdapter;
     ArrayList<CategoryListItem> mItemList;
@@ -29,12 +29,12 @@ public class CategoryListActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_category_list);
 
-        getSupportActionBar().setTitle("フォルダリスト");
+        getActionBar().setTitle("フォルダリスト");
 
         SQLiteDatabase db = DBTools.getDatabase(this);
         Cursor cursor = db.query("category", new String[]{"_id", "category", "password", "isLocked", "isUnpublished"}, null, null, null, null, "_id");
 
-        mItemList = new ArrayList();
+        mItemList = new ArrayList<>();
         if (cursor.moveToFirst()) {
             do {
                 int id = cursor.getInt(cursor.getColumnIndex("_id"));
@@ -57,17 +57,12 @@ public class CategoryListActivity extends ActionBarActivity {
             mListView.setAdapter(mAdapter);
             mListView.setVisibility(View.VISIBLE);
         }
+
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
+        return item.getItemId() == R.id.action_settings || super.onOptionsItemSelected(item);
     }
 
     public class CategoryListItem {
@@ -112,7 +107,6 @@ public class CategoryListActivity extends ActionBarActivity {
             ((TextView) convertView.findViewById(R.id.categoryTextView)).setText(item.getCategory());
             ((TextView) convertView.findViewById(R.id.passwordTextView)).setText("パスワード：" + item.getPassword());
             ((TextView) convertView.findViewById(R.id.stateTextView)).setText("設定：" + item.getState());
-
 
             (convertView.findViewById(R.id.button4)).setOnClickListener(new View.OnClickListener() {
                 @Override

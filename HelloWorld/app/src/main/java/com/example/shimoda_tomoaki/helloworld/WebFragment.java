@@ -10,11 +10,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
@@ -30,46 +26,36 @@ import java.net.URL;
 import android.support.v4.app.Fragment;
 
 public class WebFragment extends Fragment {
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_CATEGORY_ID = "categoryId";
-    private static final String ARG_CATEGORY = "category";
 
     private View mRootView;
     private int mCategoryId;
-    private String mCategory;
 
     private OnFragmentInteractionListener mListener;
 
-    public static WebFragment newInstance(int categoryId, String category) {
+    public static WebFragment newInstance(int categoryId) {
         WebFragment fragment = new WebFragment();
         Bundle args = new Bundle();
         args.putInt(ARG_CATEGORY_ID, categoryId);
-        args.putString(ARG_CATEGORY, category);
         fragment.setArguments(args);
         return fragment;
     }
 
-    public WebFragment() {
-        // Required empty public constructor
-    }
+    public WebFragment() {}
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             mCategoryId = getArguments().getInt(ARG_CATEGORY_ID);
-            mCategory = getArguments().getString(ARG_CATEGORY);
         }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        Log.d("tag", "point2");
-        // Inflate the layout for this fragment
         mRootView = inflater.inflate(R.layout.fragment_web, container, false);
 
-        Log.d("tag", "point1");
         WebView webView = (WebView) mRootView.findViewById(R.id.webView);
         webView.setWebViewClient(new WebViewClient());
         webView.addJavascriptInterface(new JavaScriptInterface(getActivity()), "Android");
@@ -82,14 +68,7 @@ public class WebFragment extends Fragment {
 
                 if (hr.getType() == WebView.HitTestResult.IMAGE_TYPE
                         || hr.getType() == WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE) {
-                    Log.d("myTag", "imageUrl:" + hr.getExtra());
-
-                    try {
-                        GetBitmap getBitmap = new GetBitmap(new URL(hr.getExtra()));
-                        getBitmap.execute();
-                    } catch (MalformedURLException e) {
-                        e.printStackTrace();
-                    }
+                    new GetBitmap().execute(hr.getExtra());
                 }
 
                 return true;
@@ -140,57 +119,18 @@ public class WebFragment extends Fragment {
         return false;
     }
 
-//    @Override
-//    public boolean onKeyDown(int keyCode, KeyEvent event) {
-//        WebView  myWebView = (WebView) mRootView.findViewById(R.id.webView);
-//        // 端末のBACKキーで一つ前のページヘ戻る
-//        if(keyCode == KeyEvent.KEYCODE_BACK && myWebView.canGoBack()) {
-//            myWebView.goBack();
-//            return true;
-//        }
-//        return onKeyDown(keyCode, event);
-//    }
-
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        getMenuInflater().inflate(R.menu.main, menu);
-//        return true;
-//    }
-//
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//        int id = item.getItemId();
-//
-//        switch (id) {
-//            case R.id.action_settings:
-//                return true;
-//            case android.R.id.home:
-//                finish();
-//                return true;
-//        }
-//
-//        return super.onOptionsItemSelected(item);
-//    }
-
     public class GetBitmap extends AsyncTask<String, Integer, Bitmap> {
-        private static final String TAG = "myTag";
         private URL mUrl;
-
-        public GetBitmap (URL url) {
-            super();
-            mUrl = url;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            //Log.d(TAG, "下準備");
-        }
 
         @Override
         protected Bitmap doInBackground(String... inputParams) {
-            //Log.d(TAG, "DownloadTask.doInBackground(" + mUrl + ")");
-
+            try {
+                mUrl = new URL(inputParams[0]);
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
             Bitmap bitmap = null;
+
             try {
                 InputStream input = (InputStream)mUrl.getContent();
                 Drawable d = Drawable.createFromStream(input, "src");
@@ -198,21 +138,14 @@ public class WebFragment extends Fragment {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            publishProgress(100);
 
             return bitmap;
         }
 
         @Override
-        protected void onProgressUpdate(Integer... progress) {
-            //Log.d(TAG, "DownloadTask.onProgressUpdate(" + progress[0] + ")");
-        }
-
-        @Override
         protected void onPostExecute(Bitmap result) {
-            //Log.d(TAG, "DownloadTask.onPostExecute");
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            result.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+            result.compress(Bitmap.CompressFormat.PNG, 100, stream);
             byte[] bitmapData = stream.toByteArray();
 
             ContentValues value = new ContentValues();
@@ -229,19 +162,14 @@ public class WebFragment extends Fragment {
                 e.printStackTrace();
             } finally {
                 db.endTransaction();
+                db.close();
             }
-        }
-
-        @Override
-        protected void onCancelled() {
-            Log.d(TAG, "DownloadTask.onCancelled");
         }
     }
 
     public class JavaScriptInterface {
         Context mContext;
 
-        /** Instantiate the interface and set the context */
         JavaScriptInterface(Context c) {
             mContext = c;
         }

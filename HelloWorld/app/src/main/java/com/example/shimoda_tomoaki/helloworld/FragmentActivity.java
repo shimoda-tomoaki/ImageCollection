@@ -20,30 +20,23 @@ public class FragmentActivity extends ActionBarActivity
         WebFragment.OnFragmentInteractionListener,
         ImageListFragment.OnFragmentInteractionListener,
         SettingFragment.OnFragmentInteractionListener {
-    /**
-     * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
-     */
+
     private NavigationDrawerFragment mNavigationDrawerFragment;
 
-    /**
-     * Used to store the last screen title. For use in {@link #restoreActionBar()}.
-     */
-    private CharSequence mTitle;
     private String mCategory;
     private int mCategoryId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Intent intent = getIntent();
+        mCategoryId = intent.getIntExtra("categoryId", -1);
+        mCategory = intent.getStringExtra("category");
+
         setContentView(R.layout.activity_fragment);
 
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
-        mTitle = getTitle();
-
-        Intent intent = getIntent();
-        mCategoryId = intent.getIntExtra("categoryId", -1);
-        mCategory = intent.getStringExtra("category");
 
         mNavigationDrawerFragment.setUp(R.id.navigation_drawer, (DrawerLayout) findViewById(R.id.drawer_layout));
 
@@ -67,7 +60,7 @@ public class FragmentActivity extends ActionBarActivity
             case 1:
                 getSupportActionBar().setTitle(mCategory + "：ブラウザ");
                 fragmentManager.beginTransaction()
-                        .replace(R.id.container, WebFragment.newInstance(mCategoryId, mCategory), "web")
+                        .replace(R.id.container, WebFragment.newInstance(mCategoryId), "web")
                         .addToBackStack(null)
                         .commit();
                 break;
@@ -139,15 +132,14 @@ public class FragmentActivity extends ActionBarActivity
     }
 
     @Override public void onWebFragmentInteraction(Uri uri) {}
-    @Override public void onImageListFragmentInteraction(Uri uri) {};
-    @Override public void onSettingFragmentInteraction(Uri uri) {};
+    @Override public void onImageListFragmentInteraction(Uri uri) {}
+    @Override public void onSettingFragmentInteraction(Uri uri) {}
 
     @Override
     public void onBackPressed() {
         Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.container);
-        if(fragment instanceof WebFragment && ((WebFragment) fragment).goBack()) {
-            return;
-        }
+        if (fragment instanceof WebFragment && ((WebFragment) fragment).goBack()) return;
+        else if (fragment instanceof ImageListFragment && ((ImageListFragment) fragment).cancelPreviewMode()) return;
         finish();
     }
 }

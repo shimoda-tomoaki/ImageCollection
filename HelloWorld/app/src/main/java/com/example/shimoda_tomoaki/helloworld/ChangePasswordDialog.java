@@ -5,18 +5,13 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
-/**
- * Created by shimoda-tomoaki on 2015/07/19.
- */
 public class ChangePasswordDialog extends DialogFragment {
     private String mOldPassword = "";
     private String mNewPassword = "";

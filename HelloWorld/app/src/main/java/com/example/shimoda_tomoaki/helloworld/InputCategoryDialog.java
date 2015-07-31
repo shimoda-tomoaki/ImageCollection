@@ -7,12 +7,11 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.preference.DialogPreference;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -36,15 +35,23 @@ public class InputCategoryDialog extends DialogFragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
         LayoutInflater inflater = (LayoutInflater)getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        final View content = inflater.inflate(R.layout.input_category_dialog, null);
+        final View content = inflater.inflate(R.layout.input_category_dialog, null, false);
 
         builder.setView(content);
 
         ((EditText) content.findViewById(R.id.editText2)).setText(mCategory);
 
+        final TextView passwordTextView = (TextView) content.findViewById(R.id.textView2);
         mPasswordText = (EditText) content.findViewById(R.id.editText3);
         mPasswordText.setText(mPassword);
-        mPasswordText.setEnabled(mIsLocked || mIsUnpublished);
+        if (mIsLocked || mIsUnpublished){
+            passwordTextView.setVisibility(View.VISIBLE);
+            mPasswordText.setVisibility(View.VISIBLE);
+        } else {
+            passwordTextView.setVisibility(View.GONE);
+            mPasswordText.setVisibility(View.GONE);
+        }
+        mPasswordText.setVisibility(mIsLocked || mIsUnpublished ? View.VISIBLE : View.GONE);
 
         RadioGroup radioGroup = (RadioGroup) content.findViewById(R.id.RadioGroupCarrier);
         radioGroup.check(mIsLocked ? R.id.radioButton2 : mIsUnpublished ? R.id.radioButton3 : R.id.radioButton);
@@ -53,7 +60,13 @@ public class InputCategoryDialog extends DialogFragment {
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 mIsLocked = checkedId == R.id.radioButton2;
                 mIsUnpublished = checkedId == R.id.radioButton3;
-                mPasswordText.setEnabled(mIsLocked || mIsUnpublished);
+                if (mIsLocked || mIsUnpublished){
+                    passwordTextView.setVisibility(View.VISIBLE);
+                    mPasswordText.setVisibility(View.VISIBLE);
+                } else {
+                    passwordTextView.setVisibility(View.GONE);
+                    mPasswordText.setVisibility(View.GONE);
+                }
             }
         });
 
@@ -64,14 +77,10 @@ public class InputCategoryDialog extends DialogFragment {
 
                 DBTools dbTools = new DBTools(getActivity());
 
-                if (category.isEmpty())
-                    Toast.makeText(getActivity(), "カテゴリーを入力してください", Toast.LENGTH_SHORT).show();
-                else if (dbTools.isExistCategory(-1, category))
-                    Toast.makeText(getActivity(), "カテゴリー：「" + category + "」はもうあります", Toast.LENGTH_SHORT).show();
-                else if ((mIsLocked || mIsUnpublished) && password.isEmpty())
-                    Toast.makeText(getActivity(), "パスワードを入力してください", Toast.LENGTH_SHORT).show();
-                else if (mIsUnpublished && dbTools.isExistPasswordInUnPublic(-1, password))
-                    Toast.makeText(getActivity(), "別のパスワードを入力してください", Toast.LENGTH_SHORT).show();
+                if (category.isEmpty()) Toast.makeText(getActivity(), "カテゴリーを入力してください", Toast.LENGTH_SHORT).show();
+                else if (dbTools.isExistCategory(-1, category)) Toast.makeText(getActivity(), "カテゴリー：「" + category + "」はもうあります", Toast.LENGTH_SHORT).show();
+                else if ((mIsLocked || mIsUnpublished) && password.isEmpty()) Toast.makeText(getActivity(), "パスワードを入力してください", Toast.LENGTH_SHORT).show();
+                else if (mIsUnpublished && dbTools.isExistPasswordInUnPublic(-1, password)) Toast.makeText(getActivity(), "別のパスワードを入力してください", Toast.LENGTH_SHORT).show();
                 else {
                     ContentValues values = new ContentValues();
                     values.put("category", category);
