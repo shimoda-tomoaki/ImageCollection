@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
@@ -51,6 +52,7 @@ public class WebFragment extends Fragment {
     }
 
     @Override
+    //@JavascriptInterface
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         mRootView = inflater.inflate(R.layout.fragment_web, container, false);
@@ -153,6 +155,8 @@ public class WebFragment extends Fragment {
             }
         }
     }
+
+
 
     public class JavaScriptInterface {
         Context mContext;

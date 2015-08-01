@@ -18,7 +18,6 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-
 import android.support.v4.app.Fragment;
 
 import java.util.ArrayList;
@@ -38,17 +37,17 @@ public class ImageListFragment extends Fragment {
 
         private final int mNumImage;
         private final double mScale;
-        private final int mYPertitions;
+        private final int mYPartitions;
 
-        MyEnum(int numImage, double scale, int yPertitions) {
+        MyEnum(int numImage, double scale, int yPartitions) {
             mNumImage = numImage;
             mScale = scale;
-            mYPertitions = yPertitions;
+            mYPartitions = yPartitions;
         }
 
         public int getNumImage() { return mNumImage; }
         public double getScale() { return mScale; }
-        public int getYPertitions() { return mYPertitions; }
+        public int getYPartitions() { return mYPartitions; }
     }
 
     public OnFragmentInteractionListener mListener;
@@ -82,7 +81,7 @@ public class ImageListFragment extends Fragment {
         if (mImageViewList.size() == 0) {
             mRootView.findViewById(R.id.no_image_message_frame).setVisibility(View.VISIBLE);
         } else {
-            setImageView5();
+            setImageView();
         }
 
         return mRootView;
@@ -107,7 +106,7 @@ public class ImageListFragment extends Fragment {
 
     public interface OnFragmentInteractionListener {}
 
-    private void setImageView5() {
+    private void setImageView() {
         Point displaySize = new Point();
         getActivity().getWindowManager().getDefaultDisplay().getSize(displaySize);
         int minMinHeight = getMinHeight(mType);
@@ -127,7 +126,7 @@ public class ImageListFragment extends Fragment {
                 int sumWidth = 0;
                 int height = minHeight > minMinHeight ? minHeight : minMinHeight;
                 for (MyImageView eachRowImageView : imageList) {
-                    sumWidth += (((double) height / (double) eachRowImageView.getHeight(mType)) * (double) eachRowImageView.getWidth(mType));
+                    sumWidth += (((double) height / (double) eachRowImageView.getHeight(mType)) * (double) eachRowImageView.getWidth(mType)) + 3;
                 }
                 if (imageList.size() >= mType.getNumImage() && sumWidth >= minWidth) break;
             }
@@ -148,21 +147,23 @@ public class ImageListFragment extends Fragment {
                 sumWidth += (int) (((double) height / (double) imageView.getHeight()) * (double) imageView.getWidth());
             }
             LinearLayout imageRowView = (LinearLayout) inflater.inflate(R.layout.image_row_view, linearLayout, false);
-            imageRowView.setGravity(mType == MyEnum.LARGE ? Gravity.CENTER_HORIZONTAL : Gravity.LEFT);
+            imageRowView.setGravity(Gravity.CENTER_HORIZONTAL);
 
-            double baseScale = displaySize.x > sumWidth ? 1.0 : (double) displaySize.x / (double) sumWidth;
+            int width = (int) ((double)displaySize.x - (double) ((float)(imageList.size() + 1) * 3f * getResources().getDisplayMetrics().density));
+            double baseScale = width > sumWidth ? 1.0 : ((double) width / (double) sumWidth);
 
             for(MyImageView myImageView : imageList) {
                 double scale = baseScale * ((double) height / (double) myImageView.getHeight());
                 Bitmap bitmap = myImageView.getBitmap();
                 ImageView imageView = new ImageView(getActivity());
                 imageView = getImageView(imageView, myImageView);
-                imageView.setLayoutParams(new LinearLayout.LayoutParams((int) (scale * (double) bitmap.getWidth()) + 1, (int) (scale * (double) bitmap.getHeight()) + 1));
+                imageView.setLayoutParams(new LinearLayout.LayoutParams((int) (scale * (double) bitmap.getWidth()), (int) (scale * (double) bitmap.getHeight())));
                 imageRowView.addView(imageView);
             }
 
             linearLayout.addView(imageRowView);
         }
+        if(mType != MyEnum.LARGE) ((LinearLayout) linearLayout.getChildAt(linearLayout.getChildCount()-1)).setGravity(Gravity.LEFT);
     }
 
     public ArrayList<MyImageView> getImageList() {
@@ -177,6 +178,7 @@ public class ImageListFragment extends Fragment {
 
             imageViewList.add(new MyImageView(cursor.getInt(cursor.getColumnIndex("_id")), bitmap));
         }
+        db.close();
 
         return imageViewList;
     }
@@ -203,8 +205,14 @@ public class ImageListFragment extends Fragment {
                 });
 
                 imageView.setImageBitmap(bitmap);
-                int imageWidth = displaySize.x < 4 * bitmap.getWidth() ? displaySize.x : 4 * bitmap.getWidth();
-                double scale = (double) imageWidth / (double) bitmap.getWidth();
+                double scale;
+                if ((bitmap.getHeight() / displaySize.y) > (bitmap.getWidth() / displaySize.x)) {
+                    int imageHeight = displaySize.y < 4 * bitmap.getHeight() ? frameLayout.getHeight() : 4 * bitmap.getHeight();
+                    scale = (double) imageHeight / (double) bitmap.getHeight();
+                } else {
+                    int imageWidth = displaySize.x < 4 * bitmap.getWidth() ? displaySize.x : 4 * bitmap.getWidth();
+                    scale = (double) imageWidth / (double) bitmap.getWidth();
+                }
                 imageView.setLayoutParams(new FrameLayout.LayoutParams((int) (scale * (double) bitmap.getWidth()), (int) (scale * (double) bitmap.getHeight()), Gravity.CENTER));
 
                 imageView.setOnClickListener(new View.OnClickListener() {
@@ -218,8 +226,9 @@ public class ImageListFragment extends Fragment {
                     public void onClick(View v) {
                         SQLiteDatabase db = DBTools.getDatabase(getActivity());
                         db.delete("image", "_id = ? AND categoryId = ?", new String[]{"" + myImageView.getId(), "" + mCategoryId});
+                        db.close();
                         mImageViewList.remove(myImageView);
-                        setImageView5();
+                        setImageView();
                         frameLayout.setVisibility(View.GONE);
 
                         if (mImageViewList.size() == 0) {
@@ -235,7 +244,6 @@ public class ImageListFragment extends Fragment {
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater menuInflater) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_list, menu);
     }
 
@@ -243,14 +251,13 @@ public class ImageListFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         switch(id) {
             case R.id.action_settings1: mType = MyEnum.SMALL; break;
             case R.id.action_settings2: mType = MyEnum.NORMAL; break;
             case R.id.action_settings3: mType = MyEnum.LARGE; break;
         }
 
-        setImageView5();
+        setImageView();
 
         return super.onOptionsItemSelected(item);
     }
@@ -259,7 +266,7 @@ public class ImageListFragment extends Fragment {
         Point displaySize = new Point();
         getActivity().getWindowManager().getDefaultDisplay().getSize(displaySize);
 
-        return displaySize.y / type.getYPertitions();
+        return displaySize.y / type.getYPartitions();
     }
 
     private int getMinWidth(MyEnum type) {
@@ -280,9 +287,9 @@ public class ImageListFragment extends Fragment {
         getActivity().getWindowManager().getDefaultDisplay().getSize(displaySize);
 
         if (type == MyEnum.SMALL) {
-            return displaySize.y / 8;
-        } else if  (type == MyEnum.NORMAL) {
             return displaySize.y / 5;
+        } else if  (type == MyEnum.NORMAL) {
+            return displaySize.y / 3;
         } else {
             return displaySize.y;
         }
@@ -296,7 +303,6 @@ public class ImageListFragment extends Fragment {
         }
         return false;
     }
-
 
     public class MyImageView {
         private int mId;
