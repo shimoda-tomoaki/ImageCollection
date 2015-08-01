@@ -18,15 +18,6 @@ import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
-
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link SettingFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link SettingFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
 public class SettingFragment extends Fragment {
     private static final String ARG_CATEGORY_ID = "category_id";
     private static final String ARG_CATEGORY = "category";
@@ -37,9 +28,8 @@ public class SettingFragment extends Fragment {
     private EditText mPasswordText;
     private Boolean mIsLocked = false;
     private Boolean mIsUnpublished = false;
-    private View mRootView;
 
-    private OnFragmentInteractionListener mListener;
+    public OnFragmentInteractionListener mListener;
 
     public static SettingFragment newInstance(int categoryId, String category) {
         SettingFragment fragment = new SettingFragment();
@@ -66,12 +56,12 @@ public class SettingFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        mRootView = inflater.inflate(R.layout.fragment_setting, container, false);
 
-        mCategoryText = (EditText) mRootView.findViewById(R.id.editText2);
+        View rootView = inflater.inflate(R.layout.fragment_setting, container, false);
+
+        mCategoryText = (EditText) rootView.findViewById(R.id.editText2);
         mCategoryText.setText(mCategory);
-        mPasswordText = (EditText) mRootView.findViewById(R.id.editText3);
+        mPasswordText = (EditText) rootView.findViewById(R.id.editText3);
 
         SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase("data/data/" + getActivity().getPackageName() + "/Sample.db", null);
         Cursor cursor = db.query("category", new String[]{"password", "isLocked", "isUnpublished"}, "_id = ?", new String[]{"" + mCategoryId}, null, null, null);
@@ -84,7 +74,7 @@ public class SettingFragment extends Fragment {
             Toast.makeText(getActivity(), "categoryID : " + mCategoryId, Toast.LENGTH_LONG).show();
         }
 
-        Button decideButton = (Button) mRootView.findViewById(R.id.button2);
+        Button decideButton = (Button) rootView.findViewById(R.id.button2);
         decideButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -108,7 +98,7 @@ public class SettingFragment extends Fragment {
             }
         });
 
-        Button removeButton = (Button) mRootView.findViewById(R.id.button3);
+        Button removeButton = (Button) rootView.findViewById(R.id.button3);
         removeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -130,7 +120,7 @@ public class SettingFragment extends Fragment {
             }
         });
 
-        RadioGroup radioGroup = (RadioGroup) mRootView.findViewById(R.id.RadioGroupCarrier);
+        RadioGroup radioGroup = (RadioGroup) rootView.findViewById(R.id.RadioGroupCarrier);
         radioGroup.check(mIsLocked ? R.id.radioButton2 : mIsUnpublished ? R.id.radioButton3 : R.id.radioButton);
         radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
@@ -143,14 +133,7 @@ public class SettingFragment extends Fragment {
 
         setPasswordTextEnabled();
 
-        return mRootView;
-    }
-
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onSettingFragmentInteraction(uri);
-        }
+        return rootView;
     }
 
     @Override
@@ -170,9 +153,7 @@ public class SettingFragment extends Fragment {
         mListener = null;
     }
 
-    public interface OnFragmentInteractionListener {
-        public void onSettingFragmentInteraction(Uri uri);
-    }
+    public interface OnFragmentInteractionListener {}
 
     private void setPasswordTextEnabled() {
         mPasswordText.setEnabled(mIsLocked || mIsUnpublished);

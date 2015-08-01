@@ -6,7 +6,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -15,7 +14,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -53,7 +51,7 @@ public class ImageListFragment extends Fragment {
         public int getYPertitions() { return mYPertitions; }
     }
 
-    private OnFragmentInteractionListener mListener;
+    public OnFragmentInteractionListener mListener;
 
     public static ImageListFragment newInstance(int categoryId) {
         ImageListFragment fragment = new ImageListFragment();
@@ -107,10 +105,7 @@ public class ImageListFragment extends Fragment {
         mListener = null;
     }
 
-    public interface OnFragmentInteractionListener {
-        public void onImageListFragmentInteraction(Uri uri);
-    }
-
+    public interface OnFragmentInteractionListener {}
 
     private void setImageView5() {
         Point displaySize = new Point();
@@ -120,9 +115,9 @@ public class ImageListFragment extends Fragment {
         LayoutInflater inflater = LayoutInflater.from(getActivity());
 
         int minWidth = getMinWidth(mType);
-        ArrayList<ArrayList<MyImageView>> imageListList = new ArrayList();
+        ArrayList<ArrayList<MyImageView>> imageListList = new ArrayList<>();
         for (int i = 0; i < mImageViewList.size();) {
-            ArrayList<MyImageView> imageList = new ArrayList();
+            ArrayList<MyImageView> imageList = new ArrayList<>();
             int minHeight = Integer.MAX_VALUE;
             for (; i < mImageViewList.size();) {
                 MyImageView myImageView = mImageViewList.get(i++);
@@ -171,7 +166,7 @@ public class ImageListFragment extends Fragment {
     }
 
     public ArrayList<MyImageView> getImageList() {
-        ArrayList<MyImageView> imageViewList = new ArrayList<MyImageView>();
+        ArrayList<MyImageView> imageViewList = new ArrayList<>();
 
         SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase("data/data/" + getActivity().getPackageName() + "/Sample.db", null);
         Cursor cursor = db.query("image", new String[]{"_id", "categoryId", "image", "created_date"}, "categoryId = ?", new String[]{"" + mCategoryId}, null, null, "_id");

@@ -1,27 +1,18 @@
 package com.example.shimoda_tomoaki.helloworld;
 
-import android.app.Activity;
 import android.content.Intent;
-import android.net.Uri;
-import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.AppCompatActivity;
 
 
-public class FragmentActivity extends ActionBarActivity
+public class FragmentActivity extends AppCompatActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks,
         WebFragment.OnFragmentInteractionListener,
         ImageListFragment.OnFragmentInteractionListener,
         SettingFragment.OnFragmentInteractionListener {
-
-    private NavigationDrawerFragment mNavigationDrawerFragment;
 
     private String mCategory;
     private int mCategoryId;
@@ -35,10 +26,10 @@ public class FragmentActivity extends ActionBarActivity
 
         setContentView(R.layout.activity_fragment);
 
-        mNavigationDrawerFragment = (NavigationDrawerFragment)
+        NavigationDrawerFragment navigationDrawerFragment = (NavigationDrawerFragment)
                 getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
 
-        mNavigationDrawerFragment.setUp(R.id.navigation_drawer, (DrawerLayout) findViewById(R.id.drawer_layout));
+        navigationDrawerFragment.setUp(R.id.navigation_drawer, (DrawerLayout) findViewById(R.id.drawer_layout));
 
         getSupportActionBar().setTitle(mCategory + "：画像一覧");
         getSupportFragmentManager().beginTransaction()
@@ -76,64 +67,6 @@ public class FragmentActivity extends ActionBarActivity
                 break;
         }
     }
-
-    public void onSectionAttached(int number) {
-        switch (number) {
-            case 0:
-                setTitle("ブラウザ");
-                break;
-            case 1:
-                setTitle("画像一覧");
-                break;
-            case 2:
-                setTitle("設定");
-                break;
-            default:
-                break;
-        }
-    }
-
-
-
-    public void restoreActionBar() {
-        Log.d("tag", "restoreActionBar");
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.setDisplayShowTitleEnabled(true);
-    }
-
-
-    public static class PlaceholderFragment extends Fragment {
-        private static final String ARG_SECTION_NUMBER = "section_number";
-
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        public PlaceholderFragment() {
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            Log.d("tag", "onCreateView");
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            return rootView;
-        }
-
-        @Override
-        public void onAttach(Activity activity) {
-            super.onAttach(activity);
-            ((FragmentActivity) activity).onSectionAttached(getArguments().getInt(ARG_SECTION_NUMBER));
-        }
-    }
-
-    @Override public void onWebFragmentInteraction(Uri uri) {}
-    @Override public void onImageListFragmentInteraction(Uri uri) {}
-    @Override public void onSettingFragmentInteraction(Uri uri) {}
 
     @Override
     public void onBackPressed() {

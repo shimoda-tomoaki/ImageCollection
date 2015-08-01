@@ -7,7 +7,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -31,7 +30,7 @@ public class WebFragment extends Fragment {
     private View mRootView;
     private int mCategoryId;
 
-    private OnFragmentInteractionListener mListener;
+    public OnFragmentInteractionListener mListener;
 
     public static WebFragment newInstance(int categoryId) {
         WebFragment fragment = new WebFragment();
@@ -96,19 +95,7 @@ public class WebFragment extends Fragment {
         mListener = null;
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        public void onWebFragmentInteraction(Uri uri);
-    }
+    public interface OnFragmentInteractionListener {}
 
     public boolean goBack() {
         WebView webView = (WebView) mRootView.findViewById(R.id.webView);

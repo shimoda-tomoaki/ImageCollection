@@ -1,6 +1,5 @@
 package com.example.shimoda_tomoaki.helloworld;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
@@ -12,6 +11,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -27,7 +27,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TopActivity extends Activity {
+public class TopActivity extends AppCompatActivity {
     private int mCategoryId;
     private String mCategory;
     private String mPassword;
@@ -43,12 +43,11 @@ public class TopActivity extends Activity {
             DBTools.makeTable(this);
         }
 
-        if (!preference.getString("SettingPassword", "").isEmpty()) {
-            DialogFragment newFragment = new InputPasswordCustomDialog();
-            newFragment.show(getFragmentManager(), InputPasswordCustomDialog.SITUATION_INPUT_SETTING_PASSWORD);
+        if (preference.getString("SettingPassword", "").isEmpty()) {
+            showSettingMasterPasswordDialog(this);
         }
 
-        getActionBar().setTitle("画像収集アプリ");
+        getSupportActionBar().setTitle("画像収集アプリ");
     }
 
     @Override
@@ -66,12 +65,10 @@ public class TopActivity extends Activity {
             newFragment.show(getFragmentManager(), null);
             return true;
         } else if (id == R.id.action_settings2) {
-            DialogFragment newFragment = new InputPasswordCustomDialog();
-            newFragment.show(getFragmentManager(), InputPasswordCustomDialog.SITUATION_SELECT_CATEGORY_LIST);
+            showInputMasterPasswordDialog(this, "");
             return true;
         } else if (id == R.id.action_settings3) {
-            DialogFragment newFragment = new ChangePasswordDialog();
-            newFragment.show(getFragmentManager(), null);
+            new ChangeMasterPasswordDialog().show(getFragmentManager(), null);
         }
 
         return super.onOptionsItemSelected(item);
@@ -83,52 +80,6 @@ public class TopActivity extends Activity {
         categoryListSet();
     }
 
-    public void selectLockedActivity(String inputPassword) {
-        if (inputPassword.equals(mPassword)) {
-            Intent intent = new Intent(getApplicationContext(), FragmentActivity.class);
-            intent.putExtra("category", mCategory);
-            intent.putExtra("categoryId", mCategoryId);
-            startActivity(intent);
-        } else {
-            Toast.makeText(this, "パスワードが間違っています", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    public void selectUnpublishedActivity(String inputPassword) {
-        SQLiteDatabase db = DBTools.getDatabase(this);
-        Cursor cursor = db.query("category", new String[]{"_id", "category"}, "password = ? AND isUnpublished = ?", new String[]{inputPassword, "1"}, null, null, null);
-        db.close();
-
-        if(cursor.moveToFirst()) {
-            Intent intent = new Intent(getApplicationContext(), FragmentActivity.class);
-            intent.putExtra("category", cursor.getString(cursor.getColumnIndex("category")));
-            intent.putExtra("categoryId", cursor.getInt(cursor.getColumnIndex("_id")));
-            startActivity(intent);
-        } else {
-            Toast.makeText(this, "入力したパスワードの非表示フォルダは存在しません", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    public void selectCategoryList(String inputPassword) {
-        SharedPreferences preference = getSharedPreferences("Preference Name", MODE_PRIVATE);
-
-        if(inputPassword.equals(preference.getString("SettingPassword", ""))) {
-            startActivity(new Intent(getApplicationContext(), CategoryListActivity.class));
-        } else {
-            Toast.makeText(this, "パスワードが間違っています", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    public void inputSettingPassword(String inputPassword) {
-        if (!inputPassword.isEmpty()) {
-            SharedPreferences preference = getSharedPreferences("Preference Name", MODE_PRIVATE);
-            preference.edit().putString("SettingPassword", inputPassword).apply();
-        } else {
-            DialogFragment newFragment = new InputPasswordCustomDialog();
-            newFragment.show(getFragmentManager(), InputPasswordCustomDialog.SITUATION_INPUT_SETTING_PASSWORD);
-        }
-    }
-
     public void categoryListSet() {
         ListView listView;
         FolderListItemAdapter folderListItemAdapter;
@@ -138,14 +89,15 @@ public class TopActivity extends Activity {
 
         SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase("data/data/" + getPackageName() + "/Sample.db", null);
         Cursor cursor = db.query("category", new String[]{"_id", "category", "password", "isLocked", "isUnpublished"}, null, null, null, null, null);
-        db.close();
 
         dataList = new ArrayList<>();
         while (cursor.moveToNext()) {
-            dataList.add(new FolderListItem(cursor.getInt(cursor.getColumnIndex("isLocked")) == 0 ? FolderItemType.NORMAL_FOLDER : FolderItemType.LOCK_FOLDER,
-                    cursor.getInt(cursor.getColumnIndex("_id")),
-                    cursor.getString(cursor.getColumnIndex("category")),
-                    cursor.getString(cursor.getColumnIndex("password"))));
+            if (cursor.getInt(cursor.getColumnIndex("isUnpublished")) == 0) {
+                dataList.add(new FolderListItem(cursor.getInt(cursor.getColumnIndex("isLocked")) == 0 ? FolderItemType.NORMAL_FOLDER : FolderItemType.LOCK_FOLDER,
+                        cursor.getInt(cursor.getColumnIndex("_id")),
+                        cursor.getString(cursor.getColumnIndex("category")),
+                        cursor.getString(cursor.getColumnIndex("password"))));
+            }
         }
 
         if (dataList.size() == 0) {
@@ -238,8 +190,7 @@ public class TopActivity extends Activity {
                             mCategoryId = categoryId;
                             mCategory = category;
                             mPassword = password;
-                            DialogFragment newFragment = new InputPasswordCustomDialog();
-                            newFragment.show(getFragmentManager(), InputPasswordCustomDialog.SITUATION_SELECT_LOCKED_CATEGORY);
+                            showInputLockFolderPasswordDialog(getContext(), "");
                         }
                     });
                     textView.setTextColor(Color.BLACK);
@@ -251,8 +202,7 @@ public class TopActivity extends Activity {
                     convertView.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            DialogFragment newFragment = new InputPasswordCustomDialog();
-                            newFragment.show(getFragmentManager(), InputPasswordCustomDialog.SITUATION_SELECT_UNPUBLISHED_CATEGORY);
+                            showInputPrivateFolderPasswordDialog(getContext(), "");
                         }
                     });
                     textView.setTextColor(Color.GRAY);
@@ -276,7 +226,132 @@ public class TopActivity extends Activity {
         }
     }
 
-    public static class ChangePasswordDialog extends DialogFragment {
+    public void showInputLockFolderPasswordDialog(final Context context, String inputPassword) {
+        LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        final View content = inflater.inflate(R.layout.input_password_edit_text, null);
+        final EditText passwordEditText = (EditText) content.findViewById(R.id.input_password_edit_text);
+        passwordEditText.setText(inputPassword);
+
+        AlertDialog.Builder dialog = new AlertDialog.Builder(context);
+        dialog.setView(content)
+                .setMessage("パスワードを入力してください")
+                .setPositiveButton("決定", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        String inputPassword = passwordEditText.getText().toString();
+
+                        if (inputPassword.equals(mPassword)) {
+                            Intent intent = new Intent(getApplicationContext(), FragmentActivity.class);
+                            intent.putExtra("category", mCategory);
+                            intent.putExtra("categoryId", mCategoryId);
+                            startActivity(intent);
+                        } else {
+                            showInputLockFolderPasswordDialog(context, inputPassword);
+                            Toast.makeText(context, "パスワードが間違っています", Toast.LENGTH_SHORT).show();
+                        }
+
+                        dialog.dismiss();
+                    }
+                })
+                .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.dismiss();
+                    }
+                }).show();
+    }
+
+    public void showInputPrivateFolderPasswordDialog(final Context context, String inputPassword) {
+        LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        final View content = inflater.inflate(R.layout.input_password_edit_text, null);
+        final EditText passwordEditText = (EditText) content.findViewById(R.id.input_password_edit_text);
+        passwordEditText.setText(inputPassword);
+
+        AlertDialog.Builder dialog = new AlertDialog.Builder(context);
+        dialog.setView(content)
+                .setMessage("パスワードを入力してください")
+                .setPositiveButton("決定", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        String inputPassword = passwordEditText.getText().toString();
+
+                        SQLiteDatabase db = DBTools.getDatabase(context);
+                        Cursor cursor = db.query("category", new String[]{"_id", "category"}, "password = ? AND isUnpublished = ?", new String[]{inputPassword, "1"}, null, null, null);
+
+                        if (cursor.moveToFirst()) {
+                            Intent intent = new Intent(getApplicationContext(), FragmentActivity.class);
+                            intent.putExtra("category", cursor.getString(cursor.getColumnIndex("category")));
+                            intent.putExtra("categoryId", cursor.getInt(cursor.getColumnIndex("_id")));
+                            startActivity(intent);
+                        } else {
+                            showInputPrivateFolderPasswordDialog(context, inputPassword);
+                            Toast.makeText(context, "入力したパスワードの非表示フォルダは存在しません", Toast.LENGTH_SHORT).show();
+                        }
+
+                        dialog.dismiss();
+                    }
+                })
+                .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.dismiss();
+                    }
+                })
+                .show();
+    }
+
+    public void showSettingMasterPasswordDialog(final Context context) {
+        LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        final View content = inflater.inflate(R.layout.input_password_edit_text, null);
+
+        AlertDialog.Builder dialog = new AlertDialog.Builder(context);
+        dialog.setView(content);
+
+        dialog.setMessage("管理パスワードを入力してください").setPositiveButton("決定", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                String password = ((EditText) content.findViewById(R.id.input_password_edit_text)).getText().toString();
+
+                if (!password.isEmpty()) {
+                    SharedPreferences preference = context.getSharedPreferences("Preference Name", MODE_PRIVATE);
+                    preference.edit().putString("SettingPassword", password).apply();
+                } else {
+                    Toast.makeText(context, "パスワードを入力してください", Toast.LENGTH_LONG).show();
+                    showSettingMasterPasswordDialog(context);
+                }
+
+                dialog.dismiss();
+            }
+        }).show();
+    }
+
+    public void showInputMasterPasswordDialog(final Context context, String inputPassword) {
+        LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        final View content = inflater.inflate(R.layout.input_password_edit_text, null);
+        final EditText passwordEditText = (EditText) content.findViewById(R.id.input_password_edit_text);
+        passwordEditText.setText(inputPassword);
+
+        AlertDialog.Builder dialog = new AlertDialog.Builder(context);
+        dialog.setView(content);
+
+        dialog.setMessage("管理パスワードを入力してください").setPositiveButton("決定", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                String inputPassword = passwordEditText.getText().toString();
+
+                SharedPreferences preference = context.getSharedPreferences("Preference Name", MODE_PRIVATE);
+
+                if(inputPassword.equals(preference.getString("SettingPassword", ""))) {
+                    context.startActivity(new Intent(context, CategoryListActivity.class));
+                } else {
+                    showInputMasterPasswordDialog(context, inputPassword);
+                    Toast.makeText(context, "パスワードが間違っています", Toast.LENGTH_SHORT).show();
+                }
+
+                dialog.dismiss();
+            }
+        }).setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.dismiss();
+            }
+        }).show();
+    }
+
+    public static class ChangeMasterPasswordDialog extends DialogFragment {
         private String mOldPassword = "";
         private String mNewPassword = "";
 
@@ -313,13 +388,12 @@ public class TopActivity extends Activity {
                         return;
                     }
 
-                    DialogFragment newFragment = new ChangePasswordDialog();
-
                     Bundle args = new Bundle();
                     args.putString("oldPassword", oldPassword);
                     args.putString("newPassword", newPassword);
-                    newFragment.setArguments(args);
 
+                    DialogFragment newFragment = new ChangeMasterPasswordDialog();
+                    newFragment.setArguments(args);
                     newFragment.show(getFragmentManager(), null);
                 }
             }).setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {

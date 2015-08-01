@@ -1,14 +1,9 @@
 package com.example.shimoda_tomoaki.helloworld;
 
-import android.app.Application;
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-/**
- * Created by shimoda-tomoaki on 2015/07/17.
- */
 public class DBTools {
     SQLiteDatabase mDb;
 

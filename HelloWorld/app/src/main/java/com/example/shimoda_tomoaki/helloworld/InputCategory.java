@@ -1,7 +1,7 @@
 package com.example.shimoda_tomoaki.helloworld;
 
+import android.app.Activity;
 import android.content.ContentValues;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -12,7 +12,7 @@ import android.widget.RadioGroup;
 import android.widget.Toast;
 
 
-public class InputCategory extends ActionBarActivity {
+public class InputCategory extends Activity {
     private EditText mPasswordText;
     private Boolean mIsLocked = false;
     private Boolean mIsUnpublished = false;
@@ -81,9 +81,5 @@ public class InputCategory extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    private void setPasswordTextEnabled() {
-        mPasswordText.setEnabled(mIsLocked || mIsUnpublished);
     }
 }

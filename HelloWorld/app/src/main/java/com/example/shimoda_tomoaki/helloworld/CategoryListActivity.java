@@ -1,12 +1,12 @@
 package com.example.shimoda_tomoaki.helloworld;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class CategoryListActivity extends Activity {
+public class CategoryListActivity extends AppCompatActivity {
     ListView mListView;
     CategoryListAdapter mAdapter;
     ArrayList<CategoryListItem> mItemList;
@@ -29,7 +29,7 @@ public class CategoryListActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_category_list);
 
-        getActionBar().setTitle("フォルダリスト");
+        getSupportActionBar().setTitle("フォルダリスト");
 
         SQLiteDatabase db = DBTools.getDatabase(this);
         Cursor cursor = db.query("category", new String[]{"_id", "category", "password", "isLocked", "isUnpublished"}, null, null, null, null, "_id");
