@@ -163,7 +163,7 @@ public class ImageListFragment extends Fragment {
 
             linearLayout.addView(imageRowView);
         }
-        if(mType != MyEnum.LARGE) ((LinearLayout) linearLayout.getChildAt(linearLayout.getChildCount()-1)).setGravity(Gravity.LEFT);
+        if(mType != MyEnum.LARGE && linearLayout.getChildCount() != 0) ((LinearLayout) linearLayout.getChildAt(linearLayout.getChildCount()-1)).setGravity(Gravity.LEFT);
     }
 
     public ArrayList<MyImageView> getImageList() {
@@ -287,9 +287,9 @@ public class ImageListFragment extends Fragment {
         getActivity().getWindowManager().getDefaultDisplay().getSize(displaySize);
 
         if (type == MyEnum.SMALL) {
-            return displaySize.y / 5;
+            return displaySize.y / 6;
         } else if  (type == MyEnum.NORMAL) {
-            return displaySize.y / 3;
+            return displaySize.y / 4;
         } else {
             return displaySize.y;
         }

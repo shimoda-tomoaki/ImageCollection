@@ -1,5 +1,6 @@
 package com.example.shimoda_tomoaki.helloworld;
 
+import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
@@ -10,6 +11,7 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
@@ -296,14 +298,15 @@ public class TopActivity extends AppCompatActivity {
                 .show();
     }
 
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     public void showSettingMasterPasswordDialog(final Context context) {
         LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        final View content = inflater.inflate(R.layout.input_password_edit_text, null);
+        final View content = inflater.inflate(R.layout.setting_master_password, null);
 
         AlertDialog.Builder dialog = new AlertDialog.Builder(context);
         dialog.setView(content);
 
-        dialog.setMessage("管理パスワードを入力してください").setPositiveButton("決定", new DialogInterface.OnClickListener() {
+        dialog.setPositiveButton("決定", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 String password = ((EditText) content.findViewById(R.id.input_password_edit_text)).getText().toString();
 
@@ -311,11 +314,17 @@ public class TopActivity extends AppCompatActivity {
                     SharedPreferences preference = context.getSharedPreferences("Preference Name", MODE_PRIVATE);
                     preference.edit().putString("SettingPassword", password).apply();
                 } else {
-                    Toast.makeText(context, "パスワードを入力してください", Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, "管理パスワードを設定してください", Toast.LENGTH_LONG).show();
                     showSettingMasterPasswordDialog(context);
                 }
 
                 dialog.dismiss();
+            }
+        }).setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                Toast.makeText(context, "管理パスワードを設定してください", Toast.LENGTH_SHORT).show();
+                showSettingMasterPasswordDialog(context);
             }
         }).show();
     }
