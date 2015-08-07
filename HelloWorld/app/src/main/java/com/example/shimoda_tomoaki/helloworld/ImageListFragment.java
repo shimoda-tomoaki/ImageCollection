@@ -1,8 +1,6 @@
 package com.example.shimoda_tomoaki.helloworld;
 
 import android.app.Activity;
-import android.content.ContentValues;
-import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
@@ -21,9 +19,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.support.v4.app.Fragment;
-import android.widget.Toast;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 
 public class ImageListFragment extends Fragment {
