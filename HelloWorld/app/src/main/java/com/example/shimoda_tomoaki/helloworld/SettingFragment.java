@@ -63,7 +63,7 @@ public class SettingFragment extends Fragment {
         mCategoryText.setText(mCategory);
         mPasswordText = (EditText) rootView.findViewById(R.id.editText3);
 
-        SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase("data/data/" + getActivity().getPackageName() + "/Sample.db", null);
+        SQLiteDatabase db = DBTools.getDatabase(getActivity());
         Cursor cursor = db.query("category", new String[]{"password", "isLocked", "isUnpublished"}, "_id = ?", new String[]{"" + mCategoryId}, null, null, null);
 
         if (cursor.moveToFirst()) {

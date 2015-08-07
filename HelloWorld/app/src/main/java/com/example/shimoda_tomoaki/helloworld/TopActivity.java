@@ -42,7 +42,6 @@ public class TopActivity extends AppCompatActivity {
         SharedPreferences preference = getSharedPreferences("Preference Name", MODE_PRIVATE);
         if (!preference.getBoolean("Launched", false)) {
             preference.edit().putBoolean("Launched", true).apply();
-            DBTools.makeTable(this);
         }
 
         if (preference.getString("SettingPassword", "").isEmpty()) {
@@ -89,7 +88,7 @@ public class TopActivity extends AppCompatActivity {
 
         listView = (ListView) findViewById(R.id.listView);
 
-        SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase("data/data/" + getPackageName() + "/Sample.db", null);
+        SQLiteDatabase db = new MySQLiteOpenHelper(this).getWritableDatabase();
         Cursor cursor = db.query("category", new String[]{"_id", "category", "password", "isLocked", "isUnpublished"}, null, null, null, null, null);
 
         dataList = new ArrayList<>();

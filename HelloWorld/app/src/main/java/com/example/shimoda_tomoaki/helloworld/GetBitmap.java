@@ -55,7 +55,7 @@ public class GetBitmap extends AsyncTask<String, Integer, Bitmap> {
         value.put("categoryId", mCategoryId);
         value.put("image", bitmapData);
 
-        SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase("data/data/" + mContext.getPackageName() + "/Sample.db", null);
+        SQLiteDatabase db = new MySQLiteOpenHelper(mContext).getWritableDatabase();
         db.beginTransaction();
         try {
             db.insert("image", null, value);

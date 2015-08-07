@@ -173,7 +173,7 @@ public class ImageListFragment extends Fragment {
     public ArrayList<MyImageView> getImageList() {
         ArrayList<MyImageView> imageViewList = new ArrayList<>();
 
-        SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase("data/data/" + getActivity().getPackageName() + "/Sample.db", null);
+        SQLiteDatabase db = new MySQLiteOpenHelper(getActivity()).getWritableDatabase();
         Cursor cursor = db.query("image", new String[]{"_id", "categoryId", "image", "created_date"}, "categoryId = ?", new String[]{"" + mCategoryId}, null, null, "_id");
 
         while (cursor.moveToNext()) {
@@ -221,21 +221,7 @@ public class ImageListFragment extends Fragment {
 
                 imageView.setOnClickListener(new View.OnClickListener() {
                     @Override
-                    public void onClick(View v) {
-                        SQLiteDatabase db = DBTools.getDatabase(getActivity());
-                        Cursor cursor = db.query("image", new String[]{"created_date"}, "_id = ?", new String[]{"" + myImageView.getId()}, null, null, null);
-                        if (cursor.moveToFirst()) {
-                            Timestamp timestamp = Timestamp.valueOf(cursor.getString(cursor.getColumnIndex("created_date")));
-                            timestamp.setTime(timestamp.getTime() + 1000000);
-                            ContentValues value = new ContentValues();
-                            value.put("created_date", timestamp.toString());
-                            db.update("image", value, null, null);
-                            cursor = db.query("image", new String[]{"created_date"}, "_id = ?", new String[]{"" + myImageView.getId()}, null, null, null);
-                            if (cursor.moveToFirst()) {
-                                Toast.makeText(getActivity(), Timestamp.valueOf(cursor.getString(cursor.getColumnIndex("created_date"))).toString(), Toast.LENGTH_LONG).show();
-                            }
-                        }
-                    }
+                    public void onClick(View v) {}
                 });
 
                 button.setOnClickListener(new View.OnClickListener() {
