@@ -170,13 +170,13 @@ public class ImageListFragment extends Fragment {
         ArrayList<MyImageView> imageViewList = new ArrayList<>();
 
         SQLiteDatabase db = new MySQLiteOpenHelper(getActivity()).getWritableDatabase();
-        Cursor cursor = db.query("image", new String[]{"_id", "categoryId", "image", "created_date"}, "categoryId = ?", new String[]{"" + mCategoryId}, null, null, "_id");
+        Cursor cursor = db.query("image", new String[]{"id", "categoryId", "image", "created_date"}, "categoryId = ?", new String[]{"" + mCategoryId}, null, null, "id");
 
         while (cursor.moveToNext()) {
             final byte blob[] = cursor.getBlob(cursor.getColumnIndex("image"));
             final Bitmap bitmap = BitmapFactory.decodeByteArray(blob, 0, blob.length);
 
-            imageViewList.add(new MyImageView(cursor.getInt(cursor.getColumnIndex("_id")), bitmap));
+            imageViewList.add(new MyImageView(cursor.getInt(cursor.getColumnIndex("id")), bitmap));
         }
         db.close();
 
@@ -224,7 +224,7 @@ public class ImageListFragment extends Fragment {
                     @Override
                     public void onClick(View v) {
                         SQLiteDatabase db = DBTools.getDatabase(getActivity());
-                        db.delete("image", "_id = ? AND categoryId = ?", new String[]{"" + myImageView.getId(), "" + mCategoryId});
+                        db.delete("image", "id = ? AND categoryId = ?", new String[]{"" + myImageView.getId(), "" + mCategoryId});
                         db.close();
                         mImageViewList.remove(myImageView);
                         setImageView();

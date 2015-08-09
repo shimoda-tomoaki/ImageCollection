@@ -32,12 +32,12 @@ public class CategoryListActivity extends AppCompatActivity {
         getSupportActionBar().setTitle("フォルダリスト");
 
         SQLiteDatabase db = DBTools.getDatabase(this);
-        Cursor cursor = db.query("category", new String[]{"_id", "category", "password", "isLocked", "isUnpublished"}, null, null, null, null, "_id");
+        Cursor cursor = db.query("category", new String[]{"id", "category", "password", "isLocked", "isUnpublished"}, null, null, null, null, "id");
 
         mItemList = new ArrayList<>();
         if (cursor.moveToFirst()) {
             do {
-                int id = cursor.getInt(cursor.getColumnIndex("_id"));
+                int id = cursor.getInt(cursor.getColumnIndex("id"));
                 String category = cursor.getString(cursor.getColumnIndex("category"));
                 String password = cursor.getString(cursor.getColumnIndex("password"));
                 String state =

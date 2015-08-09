@@ -64,7 +64,7 @@ public class SettingFragment extends Fragment {
         mPasswordText = (EditText) rootView.findViewById(R.id.editText3);
 
         SQLiteDatabase db = DBTools.getDatabase(getActivity());
-        Cursor cursor = db.query("category", new String[]{"password", "isLocked", "isUnpublished"}, "_id = ?", new String[]{"" + mCategoryId}, null, null, null);
+        Cursor cursor = db.query("category", new String[]{"password", "isLocked", "isUnpublished"}, "id = ?", new String[]{"" + mCategoryId}, null, null, null);
 
         if (cursor.moveToFirst()) {
             mPasswordText.setText(cursor.getString(cursor.getColumnIndex("password")));
@@ -92,7 +92,7 @@ public class SettingFragment extends Fragment {
                     values.put("password", (mIsLocked || mIsUnpublished) ? password : "");
                     values.put("isLocked", mIsLocked);
                     values.put("isUnpublished", mIsUnpublished);
-                    dbTools.mDb.update("category", values, "_id = ?", new String[]{"" + mCategoryId});
+                    dbTools.mDb.update("category", values, "id = ?", new String[]{"" + mCategoryId});
                     getActivity().finish();
                 }
             }

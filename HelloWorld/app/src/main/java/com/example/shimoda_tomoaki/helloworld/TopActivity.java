@@ -1,6 +1,5 @@
 package com.example.shimoda_tomoaki.helloworld;
 
-import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
@@ -11,7 +10,6 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
@@ -42,6 +40,13 @@ public class TopActivity extends AppCompatActivity {
         SharedPreferences preference = getSharedPreferences("Preference Name", MODE_PRIVATE);
         if (!preference.getBoolean("Launched", false)) {
             preference.edit().putBoolean("Launched", true).apply();
+        }
+
+        if (!preference.getBoolean("DatabaseUpdated", false)) {
+            SQLiteDatabase db = SQLiteDatabase.openOrCreateDatabase("data/data/" + getPackageName() + "/Sample.db", null);
+            db.execSQL("DROP TABLE IF EXISTS " + getString(R.string.table_category));
+            db.execSQL("DROP TABLE IF EXISTS " + getString(R.string.table_url));
+            db.execSQL("DROP TABLE IF EXISTS " + getString(R.string.table_image));
         }
 
         if (preference.getString("SettingPassword", "").isEmpty()) {
@@ -89,13 +94,13 @@ public class TopActivity extends AppCompatActivity {
         listView = (ListView) findViewById(R.id.listView);
 
         SQLiteDatabase db = new MySQLiteOpenHelper(this).getWritableDatabase();
-        Cursor cursor = db.query("category", new String[]{"_id", "category", "password", "isLocked", "isUnpublished"}, null, null, null, null, null);
+        Cursor cursor = db.query("category", new String[]{"id", "category", "password", "isLocked", "isUnpublished"}, null, null, null, null, null);
 
         dataList = new ArrayList<>();
         while (cursor.moveToNext()) {
             if (cursor.getInt(cursor.getColumnIndex("isUnpublished")) == 0) {
                 dataList.add(new FolderListItem(cursor.getInt(cursor.getColumnIndex("isLocked")) == 0 ? FolderItemType.NORMAL_FOLDER : FolderItemType.LOCK_FOLDER,
-                        cursor.getInt(cursor.getColumnIndex("_id")),
+                        cursor.getInt(cursor.getColumnIndex("id")),
                         cursor.getString(cursor.getColumnIndex("category")),
                         cursor.getString(cursor.getColumnIndex("password"))));
             }
@@ -274,12 +279,12 @@ public class TopActivity extends AppCompatActivity {
                         String inputPassword = passwordEditText.getText().toString();
 
                         SQLiteDatabase db = DBTools.getDatabase(context);
-                        Cursor cursor = db.query("category", new String[]{"_id", "category"}, "password = ? AND isUnpublished = ?", new String[]{inputPassword, "1"}, null, null, null);
+                        Cursor cursor = db.query("category", new String[]{"id", "category"}, "password = ? AND isUnpublished = ?", new String[]{inputPassword, "1"}, null, null, null);
 
                         if (cursor.moveToFirst()) {
                             Intent intent = new Intent(getApplicationContext(), FragmentActivity.class);
                             intent.putExtra("category", cursor.getString(cursor.getColumnIndex("category")));
-                            intent.putExtra("categoryId", cursor.getInt(cursor.getColumnIndex("_id")));
+                            intent.putExtra("categoryId", cursor.getInt(cursor.getColumnIndex("id")));
                             startActivity(intent);
                         } else {
                             showInputPrivateFolderPasswordDialog(context, inputPassword);
@@ -297,7 +302,6 @@ public class TopActivity extends AppCompatActivity {
                 .show();
     }
 
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     public void showSettingMasterPasswordDialog(final Context context) {
         LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         final View content = inflater.inflate(R.layout.setting_master_password, null);

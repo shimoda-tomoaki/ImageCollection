@@ -3,9 +3,10 @@ package com.example.shimoda_tomoaki.helloworld;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 public class MySQLiteOpenHelper extends SQLiteOpenHelper {
-    final private static int DATABASE_VERSION = 2;
+    final private static int DATABASE_VERSION = 1;
     private static Context sContext;
 
     public MySQLiteOpenHelper(Context context) {
@@ -26,10 +27,5 @@ public class MySQLiteOpenHelper extends SQLiteOpenHelper {
     }
 
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        if(oldVersion == 1) {
-            db.rawQuery("ALTER TABLE category CHANGE COLUMN id _id;", null);
-            db.rawQuery("ALTER TABLE url CHANGE COLUMN id _id;", null);
-            db.rawQuery("ALTER TABLE image CHANGE COLUMN id _id;", null);
-        }
     }
 }
