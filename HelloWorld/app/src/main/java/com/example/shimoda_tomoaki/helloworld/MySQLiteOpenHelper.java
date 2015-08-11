@@ -5,7 +5,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 public class MySQLiteOpenHelper extends SQLiteOpenHelper {
-    final private static int DATABASE_VERSION = 2;
+    final private static int DATABASE_VERSION = 1;
 
     public MySQLiteOpenHelper(Context context) {
         super(context, "Sample.db", null, DATABASE_VERSION);
@@ -36,10 +36,5 @@ public class MySQLiteOpenHelper extends SQLiteOpenHelper {
     }
 
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        if (oldVersion == 1) {
-            db.execSQL("DROP TABLE IF EXISTS category");
-            db.execSQL("DROP TABLE IF EXISTS url");
-            db.execSQL("DROP TABLE IF EXISTS image");
-        }
     }
 }
