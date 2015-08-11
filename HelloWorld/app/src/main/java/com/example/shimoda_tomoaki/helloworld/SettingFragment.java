@@ -3,11 +3,9 @@ package com.example.shimoda_tomoaki.helloworld;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ContentValues;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -19,12 +17,12 @@ import android.widget.RadioGroup;
 import android.widget.Toast;
 
 public class SettingFragment extends Fragment {
-    private static final String ARG_CATEGORY_ID = "category_id";
-    private static final String ARG_CATEGORY = "category";
+    private static final String ARG_FOLDER_ID = "folderId";
+    private static final String ARG_FOLDER_NAME = "folderName";
 
-    private int mCategoryId;
-    private String mCategory;
-    private EditText mCategoryText;
+    private int mFolderId;
+    private String mFolderName;
+    private EditText mFolderTextView;
     private EditText mPasswordText;
     private Boolean mIsLocked = false;
     private Boolean mIsUnpublished = false;
@@ -34,101 +32,84 @@ public class SettingFragment extends Fragment {
     public static SettingFragment newInstance(int categoryId, String category) {
         SettingFragment fragment = new SettingFragment();
         Bundle args = new Bundle();
-        args.putInt(ARG_CATEGORY_ID, categoryId);
-        args.putString(ARG_CATEGORY, category);
+        args.putInt(ARG_FOLDER_ID, categoryId);
+        args.putString(ARG_FOLDER_NAME, category);
         fragment.setArguments(args);
         return fragment;
     }
 
-    public SettingFragment() {
-        // Required empty public constructor
-    }
+    public SettingFragment() {}
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mCategoryId = getArguments().getInt(ARG_CATEGORY_ID);
-            mCategory = getArguments().getString(ARG_CATEGORY);
+            mFolderId = getArguments().getInt(ARG_FOLDER_ID);
+            mFolderName = getArguments().getString(ARG_FOLDER_NAME);
         }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
         View rootView = inflater.inflate(R.layout.fragment_setting, container, false);
 
-        mCategoryText = (EditText) rootView.findViewById(R.id.editText2);
-        mCategoryText.setText(mCategory);
+        mFolderTextView = (EditText) rootView.findViewById(R.id.editText2);
+        mFolderTextView.setText(mFolderName);
         mPasswordText = (EditText) rootView.findViewById(R.id.editText3);
 
-        SQLiteDatabase db = DBTools.getDatabase(getActivity());
-        Cursor cursor = db.query("category", new String[]{"password", "isLocked", "isUnpublished"}, "id = ?", new String[]{"" + mCategoryId}, null, null, null);
+        SQLiteDatabase db = new DBManager(getActivity()).getDB();
+        Cursor cursor = db.query(DBManager.TABLE_FOLDER,
+                DBManager.getFolderColumnNames(),
+                DBManager.COLUMN_ID + " = ?",
+                new String[]{"" + mFolderId}, null, null, null);
 
         if (cursor.moveToFirst()) {
-            mPasswordText.setText(cursor.getString(cursor.getColumnIndex("password")));
-            mIsLocked = cursor.getInt(cursor.getColumnIndex("isLocked")) == 1;
-            mIsUnpublished = cursor.getInt(cursor.getColumnIndex("isUnpublished")) == 1;
-        } else {
-            Toast.makeText(getActivity(), "categoryID : " + mCategoryId, Toast.LENGTH_LONG).show();
+            mPasswordText.setText(cursor.getString(cursor.getColumnIndex(DBManager.COLUMN_PASSWORD)));
+            mIsLocked = cursor.getInt(cursor.getColumnIndex(DBManager.COLUMN_IS_LOCKED)) == 1;
+            mIsUnpublished = cursor.getInt(cursor.getColumnIndex(DBManager.COLUMN_IS_UNPUBLISHED)) == 1;
         }
 
         Button decideButton = (Button) rootView.findViewById(R.id.button2);
-        decideButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String category = mCategoryText.getText().toString();
-                String password = mPasswordText.getText().toString();
+        decideButton.setOnClickListener(v -> {
+            String category = mFolderTextView.getText().toString();
+            String password = mPasswordText.getText().toString();
 
-                DBTools dbTools = new DBTools(getActivity());
-                if (category.isEmpty()) Toast.makeText(getActivity(), "フォルダ名を入力してください", Toast.LENGTH_SHORT).show();
-                else if (dbTools.isExistCategory(mCategoryId, category)) Toast.makeText(getActivity(), "フォルダ：「" + category + "」はもうあります", Toast.LENGTH_SHORT).show();
-                else if ((mIsLocked || mIsUnpublished) && password.isEmpty()) Toast.makeText(getActivity(), "パスワードを入力してください", Toast.LENGTH_SHORT).show();
-                else if (mIsUnpublished && dbTools.isExistPasswordInUnPublic(mCategoryId, password)) Toast.makeText(getActivity(), "別のパスワードを入力してください", Toast.LENGTH_SHORT).show();
-                else {
-                    ContentValues values = new ContentValues();
-                    values.put("category", category);
-                    values.put("password", (mIsLocked || mIsUnpublished) ? password : "");
-                    values.put("isLocked", mIsLocked);
-                    values.put("isUnpublished", mIsUnpublished);
-                    dbTools.mDb.update("category", values, "id = ?", new String[]{"" + mCategoryId});
-                    getActivity().finish();
-                }
+            DBManager dbManager = new DBManager(getActivity());
+            if (category.isEmpty()) Toast.makeText(getActivity(), "フォルダ名を入力してください", Toast.LENGTH_SHORT).show();
+            else if (dbManager.isExistCategory(mFolderId, category)) Toast.makeText(getActivity(), "フォルダ：「" + category + "」はもうあります", Toast.LENGTH_SHORT).show();
+            else if ((mIsLocked || mIsUnpublished) && password.isEmpty()) Toast.makeText(getActivity(), "パスワードを入力してください", Toast.LENGTH_SHORT).show();
+            else if (mIsUnpublished && dbManager.isExistPasswordInUnPublic(mFolderId, password)) Toast.makeText(getActivity(), "別のパスワードを入力してください", Toast.LENGTH_SHORT).show();
+            else {
+                ContentValues values = new ContentValues();
+                values.put("category", category);
+                values.put("password", (mIsLocked || mIsUnpublished) ? password : "");
+                values.put("isLocked", mIsLocked);
+                values.put("isUnpublished", mIsUnpublished);
+                dbManager.getDB().update("category", values, "id = ?", new String[]{"" + mFolderId});
+                getActivity().finish();
             }
         });
 
         Button removeButton = (Button) rootView.findViewById(R.id.button3);
-        removeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity());
-                dialogBuilder
-                        .setTitle("本当に削除しますか?")
-                        .setPositiveButton("削除", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                DBTools.removeCategory(getActivity(), mCategoryId);
-                                startActivity(new Intent(getActivity(), TopActivity.class));
-                            }
-                        })
-                        .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {}
-                        })
-                        .show();
-            }
+        removeButton.setOnClickListener(v -> {
+            AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity());
+            dialogBuilder
+                    .setTitle("本当に削除しますか?")
+                    .setPositiveButton("削除", (dialog, which) -> {
+                        DBManager.removeCategory(getActivity(), mFolderId);
+                        startActivity(new Intent(getActivity(), TopActivity.class));
+                    })
+                    .setNegativeButton("キャンセル", (dialog, which) -> {})
+                    .show();
         });
 
         RadioGroup radioGroup = (RadioGroup) rootView.findViewById(R.id.RadioGroupCarrier);
         radioGroup.check(mIsLocked ? R.id.radioButton2 : mIsUnpublished ? R.id.radioButton3 : R.id.radioButton);
-        radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(RadioGroup group, int checkedId) {
-                mIsLocked = checkedId == R.id.radioButton2;
-                mIsUnpublished = checkedId == R.id.radioButton3;
-                mPasswordText.setEnabled(mIsLocked || mIsUnpublished);
-            }
+        radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            mIsLocked = checkedId == R.id.radioButton2;
+            mIsUnpublished = checkedId == R.id.radioButton3;
+            mPasswordText.setEnabled(mIsLocked || mIsUnpublished);
         });
 
         setPasswordTextEnabled();

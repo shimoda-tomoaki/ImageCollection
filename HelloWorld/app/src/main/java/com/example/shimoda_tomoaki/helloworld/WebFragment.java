@@ -5,23 +5,22 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.support.v4.app.Fragment;
 
 public class WebFragment extends Fragment {
-    private static final String ARG_CATEGORY_ID = "categoryId";
+    private static final String ARG_FOLDER_ID = "folderId";
 
     private View mRootView;
-    private int mCategoryId;
+    private int mFolderId;
 
     public OnFragmentInteractionListener mListener;
 
-    public static WebFragment newInstance(int categoryId) {
+    public static WebFragment newInstance(int folderId) {
         WebFragment fragment = new WebFragment();
         Bundle args = new Bundle();
-        args.putInt(ARG_CATEGORY_ID, categoryId);
+        args.putInt(ARG_FOLDER_ID, folderId);
         fragment.setArguments(args);
         return fragment;
     }
@@ -32,12 +31,11 @@ public class WebFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mCategoryId = getArguments().getInt(ARG_CATEGORY_ID);
+            mFolderId = getArguments().getInt(ARG_FOLDER_ID);
         }
     }
 
     @Override
-    //@JavascriptInterface
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         mRootView = inflater.inflate(R.layout.fragment_web, container, false);
@@ -46,19 +44,16 @@ public class WebFragment extends Fragment {
         webView.setWebViewClient(new WebViewClient());
         webView.getSettings().setJavaScriptEnabled(true);
         webView.getSettings().setBuiltInZoomControls(true);
-        webView.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                WebView webView = (WebView) view;
-                WebView.HitTestResult hr = webView.getHitTestResult();
+        webView.setOnLongClickListener(view -> {
+            WebView webView1 = (WebView) view;
+            WebView.HitTestResult hr = webView1.getHitTestResult();
 
-                if (hr.getType() == WebView.HitTestResult.IMAGE_TYPE
-                        || hr.getType() == WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE) {
-                    new GetBitmap(getActivity(), mCategoryId).execute(hr.getExtra());
-                }
-
-                return true;
+            if (hr.getType() == WebView.HitTestResult.IMAGE_TYPE
+                    || hr.getType() == WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE) {
+                new GetBitmap(getActivity(), mFolderId).execute(hr.getExtra());
             }
+
+            return true;
         });
         webView.loadUrl("http://google.com");
         return mRootView;

@@ -26,12 +26,12 @@
         </activity>
         <activity
             android:screenOrientation="portrait"
-            android:name=".InputCategory"
+            android:name=".CreateFolderActivity"
             android:label="@string/title_activity_input_category" >
         </activity>
         <activity
             android:screenOrientation="portrait"
-            android:name=".CategoryListActivity"
+            android:name=".FolderListActivity"
             android:label="@string/title_activity_category_list" >
         </activity>
     </application>

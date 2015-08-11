@@ -23,9 +23,9 @@ import android.support.v4.app.Fragment;
 import java.util.ArrayList;
 
 public class ImageListFragment extends Fragment {
-    private static final String ARG_CATEGORY_ID = "categoryId";
+    private static final String ARG_FOLDER_ID = "folderId";
 
-    private int mCategoryId;
+    private int mFolderId;
     private ArrayList<MyImageView> mImageViewList;
     private MyEnum mType = MyEnum.NORMAL;
     private View mRootView;
@@ -52,10 +52,10 @@ public class ImageListFragment extends Fragment {
 
     public OnFragmentInteractionListener mListener;
 
-    public static ImageListFragment newInstance(int categoryId) {
+    public static ImageListFragment newInstance(int folderId) {
         ImageListFragment fragment = new ImageListFragment();
         Bundle args = new Bundle();
-        args.putInt(ARG_CATEGORY_ID, categoryId);
+        args.putInt(ARG_FOLDER_ID, folderId);
         fragment.setArguments(args);
         return fragment;
     }
@@ -66,7 +66,7 @@ public class ImageListFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mCategoryId = getArguments().getInt(ARG_CATEGORY_ID);
+            mFolderId = getArguments().getInt(ARG_FOLDER_ID);
         }
     }
 
@@ -170,13 +170,16 @@ public class ImageListFragment extends Fragment {
         ArrayList<MyImageView> imageViewList = new ArrayList<>();
 
         SQLiteDatabase db = new MySQLiteOpenHelper(getActivity()).getWritableDatabase();
-        Cursor cursor = db.query("image", new String[]{"id", "categoryId", "image", "created_date"}, "categoryId = ?", new String[]{"" + mCategoryId}, null, null, "id");
+        Cursor cursor = db.query(DBManager.TABLE_IMAGE,
+                DBManager.getImageColumnNames(),
+                DBManager.COLUMN_FOLDER_ID + " = ?",
+                new String[]{"" + mFolderId}, null, null, DBManager.COLUMN_ID);
 
         while (cursor.moveToNext()) {
-            final byte blob[] = cursor.getBlob(cursor.getColumnIndex("image"));
+            final byte blob[] = cursor.getBlob(cursor.getColumnIndex(DBManager.COLUMN_IMAGE));
             final Bitmap bitmap = BitmapFactory.decodeByteArray(blob, 0, blob.length);
 
-            imageViewList.add(new MyImageView(cursor.getInt(cursor.getColumnIndex("id")), bitmap));
+            imageViewList.add(new MyImageView(cursor.getInt(cursor.getColumnIndex(DBManager.COLUMN_ID)), bitmap));
         }
         db.close();
 
@@ -186,56 +189,45 @@ public class ImageListFragment extends Fragment {
     public ImageView getImageView(ImageView imageView, final MyImageView myImageView) {
         final Bitmap bitmap  = myImageView.getBitmap();
         imageView.setImageBitmap(bitmap);
-        imageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Point displaySize = new Point();
-                getActivity().getWindowManager().getDefaultDisplay().getSize(displaySize);
+        imageView.setOnClickListener(v -> {
+            Point displaySize = new Point();
+            getActivity().getWindowManager().getDefaultDisplay().getSize(displaySize);
 
-                final FrameLayout frameLayout = (FrameLayout) mRootView.findViewById(R.id.dialog_frame_layout);
-                ImageView imageView = (ImageView) mRootView.findViewById(R.id.imageView4);
-                Button button = (Button) mRootView.findViewById(R.id.button);
+            final FrameLayout frameLayout = (FrameLayout) mRootView.findViewById(R.id.dialog_frame_layout);
+            ImageView imageView1 = (ImageView) mRootView.findViewById(R.id.imageView4);
+            Button button = (Button) mRootView.findViewById(R.id.button);
 
-                frameLayout.setVisibility(View.VISIBLE);
-                frameLayout.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        frameLayout.setVisibility(View.GONE);
-                    }
-                });
+            frameLayout.setVisibility(View.VISIBLE);
+            frameLayout.setOnClickListener(v1 -> frameLayout.setVisibility(View.GONE));
 
-                imageView.setImageBitmap(bitmap);
-                double scale;
-                if ((bitmap.getHeight() / displaySize.y) > (bitmap.getWidth() / displaySize.x)) {
-                    int imageHeight = displaySize.y < 4 * bitmap.getHeight() ? frameLayout.getHeight() : 4 * bitmap.getHeight();
-                    scale = (double) imageHeight / (double) bitmap.getHeight();
-                } else {
-                    int imageWidth = displaySize.x < 4 * bitmap.getWidth() ? displaySize.x : 4 * bitmap.getWidth();
-                    scale = (double) imageWidth / (double) bitmap.getWidth();
-                }
-                imageView.setLayoutParams(new FrameLayout.LayoutParams((int) (scale * (double) bitmap.getWidth()), (int) (scale * (double) bitmap.getHeight()), Gravity.CENTER));
-
-                imageView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {}
-                });
-
-                button.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        SQLiteDatabase db = DBTools.getDatabase(getActivity());
-                        db.delete("image", "id = ? AND categoryId = ?", new String[]{"" + myImageView.getId(), "" + mCategoryId});
-                        db.close();
-                        mImageViewList.remove(myImageView);
-                        setImageView();
-                        frameLayout.setVisibility(View.GONE);
-
-                        if (mImageViewList.size() == 0) {
-                            mRootView.findViewById(R.id.no_image_message_frame).setVisibility(View.VISIBLE);
-                        }
-                    }
-                });
+            imageView1.setImageBitmap(bitmap);
+            double scale;
+            if ((bitmap.getHeight() / displaySize.y) > (bitmap.getWidth() / displaySize.x)) {
+                int imageHeight = displaySize.y < 4 * bitmap.getHeight() ? frameLayout.getHeight() : 4 * bitmap.getHeight();
+                scale = (double) imageHeight / (double) bitmap.getHeight();
+            } else {
+                int imageWidth = displaySize.x < 4 * bitmap.getWidth() ? displaySize.x : 4 * bitmap.getWidth();
+                scale = (double) imageWidth / (double) bitmap.getWidth();
             }
+            imageView1.setLayoutParams(new FrameLayout.LayoutParams((int) (scale * (double) bitmap.getWidth()), (int) (scale * (double) bitmap.getHeight()), Gravity.CENTER));
+
+            imageView1.setOnClickListener(v1 -> {
+            });
+
+            button.setOnClickListener(v1 -> {
+                SQLiteDatabase db = new DBManager(getActivity()).getDB();
+                db.delete(DBManager.TABLE_IMAGE,
+                        DBManager.COLUMN_ID + " = ? AND " + DBManager.COLUMN_FOLDER_ID + " = ?",
+                        new String[]{"" + myImageView.getId(), "" + mFolderId});
+                db.close();
+                mImageViewList.remove(myImageView);
+                setImageView();
+                frameLayout.setVisibility(View.GONE);
+
+                if (mImageViewList.size() == 0) {
+                    mRootView.findViewById(R.id.no_image_message_frame).setVisibility(View.VISIBLE);
+                }
+            });
         });
 
         return imageView;

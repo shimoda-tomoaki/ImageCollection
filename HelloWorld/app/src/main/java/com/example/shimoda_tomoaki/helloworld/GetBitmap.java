@@ -17,11 +17,11 @@ import java.net.URL;
 
 public class GetBitmap extends AsyncTask<String, Integer, Bitmap> {
     private Context mContext;
-    private int mCategoryId;
+    private int mFolderId;
     private URL mUrl;
 
-    public GetBitmap(Context context, int categoryId) {
-        mCategoryId = categoryId;
+    public GetBitmap(Context context, int folderId) {
+        mFolderId = folderId;
         mContext = context;
     }
 
@@ -52,8 +52,8 @@ public class GetBitmap extends AsyncTask<String, Integer, Bitmap> {
         byte[] bitmapData = stream.toByteArray();
 
         ContentValues value = new ContentValues();
-        value.put("categoryId", mCategoryId);
-        value.put("image", bitmapData);
+        value.put(DBManager.COLUMN_FOLDER_ID, mFolderId);
+        value.put(DBManager.COLUMN_IMAGE, bitmapData);
 
         SQLiteDatabase db = new MySQLiteOpenHelper(mContext).getWritableDatabase();
         db.beginTransaction();

@@ -13,27 +13,29 @@ public class FragmentActivity extends AppCompatActivity
         WebFragment.OnFragmentInteractionListener,
         ImageListFragment.OnFragmentInteractionListener,
         SettingFragment.OnFragmentInteractionListener {
+    static final String ARG_FOLDER_ID = "folderId";
+    static final String ARG_FOLDER_NAME = "folderName";
 
-    private String mCategory;
-    private int mCategoryId;
+    private String mFolderName;
+    private int mFolderId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Intent intent = getIntent();
-        mCategoryId = intent.getIntExtra("categoryId", -1);
-        mCategory = intent.getStringExtra("category");
+        mFolderId = intent.getIntExtra(ARG_FOLDER_ID, -1);
+        mFolderName = intent.getStringExtra(ARG_FOLDER_NAME);
 
         setContentView(R.layout.activity_fragment);
 
-        NavigationDrawerFragment navigationDrawerFragment = (NavigationDrawerFragment)
-                getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
+        NavigationDrawerFragment navigationDrawerFragment =
+                (NavigationDrawerFragment) getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
 
         navigationDrawerFragment.setUp(R.id.navigation_drawer, (DrawerLayout) findViewById(R.id.drawer_layout));
 
-        getSupportActionBar().setTitle(mCategory + "：画像一覧");
+        getSupportActionBar().setTitle(mFolderName + "：画像一覧");
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.container, ImageListFragment.newInstance(mCategoryId), "web")
+                .replace(R.id.container, ImageListFragment.newInstance(mFolderId))
                 .commit();
     }
 
@@ -42,23 +44,23 @@ public class FragmentActivity extends AppCompatActivity
         FragmentManager fragmentManager = getSupportFragmentManager();
         switch(position) {
             case 0:
-                getSupportActionBar().setTitle(mCategory + "：画像一覧");
+                getSupportActionBar().setTitle(mFolderName + "：画像一覧");
                 fragmentManager.beginTransaction()
-                        .replace(R.id.container, ImageListFragment.newInstance(mCategoryId), "web")
+                        .replace(R.id.container, ImageListFragment.newInstance(mFolderId))
                         .addToBackStack(null)
                         .commit();
                 break;
             case 1:
-                getSupportActionBar().setTitle(mCategory + "：ブラウザ");
+                getSupportActionBar().setTitle(mFolderName + "：ブラウザ");
                 fragmentManager.beginTransaction()
-                        .replace(R.id.container, WebFragment.newInstance(mCategoryId), "web")
+                        .replace(R.id.container, WebFragment.newInstance(mFolderId))
                         .addToBackStack(null)
                         .commit();
                 break;
             case 2:
-                getSupportActionBar().setTitle(mCategory + "：設定");
+                getSupportActionBar().setTitle(mFolderName + "：設定");
                 fragmentManager.beginTransaction()
-                        .replace(R.id.container, SettingFragment.newInstance(mCategoryId, mCategory), "web")
+                        .replace(R.id.container, SettingFragment.newInstance(mFolderId, mFolderName))
                         .addToBackStack(null)
                         .commit();
                 break;

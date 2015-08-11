@@ -3,29 +3,43 @@ package com.example.shimoda_tomoaki.helloworld;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 public class MySQLiteOpenHelper extends SQLiteOpenHelper {
-    final private static int DATABASE_VERSION = 1;
-    private static Context sContext;
+    final private static int DATABASE_VERSION = 2;
 
     public MySQLiteOpenHelper(Context context) {
         super(context, "Sample.db", null, DATABASE_VERSION);
-        sContext = context;
     }
 
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("DROP TABLE IF EXISTS " + sContext.getString(R.string.table_category));
-        db.execSQL("CREATE TABLE " + sContext.getString(R.string.table_category)
-                + " (" + sContext.getString(R.string.column_id) + " INTEGER PRIMARY KEY, category TEXT NOT NULL, password TEXT, isLocked INTEGER DEFAULT 0, isUnpublished INTEGER DEFAULT 0)");
-        db.execSQL("DROP TABLE IF EXISTS " + sContext.getString(R.string.table_url));
-        db.execSQL("CREATE TABLE " + sContext.getString(R.string.table_url)
-                + " (" + sContext.getString(R.string.column_id) + " INTEGER PRIMARY KEY, categoryId INTEGER NOT NULL, url TEXT NOT NULL, created_date DATETIME DEFAULT CURRENT_TIMESTAMP)");
-        db.execSQL("DROP TABLE IF EXISTS " + sContext.getString(R.string.table_image));
-        db.execSQL("CREATE TABLE " + sContext.getString(R.string.table_image)
-                + " (" + sContext.getString(R.string.column_id) + " INTEGER PRIMARY KEY, categoryId INTEGER NOT NULL, image BLOB NOT NULL, created_date DATETIME DEFAULT CURRENT_TIMESTAMP)");
+        db.execSQL("DROP TABLE IF EXISTS " + DBManager.TABLE_FOLDER);
+        db.execSQL("CREATE TABLE " + DBManager.TABLE_FOLDER + " (" +
+                DBManager.COLUMN_ID + " INTEGER PRIMARY KEY, " +
+                DBManager.COLUMN_FOLDER_NAME + " TEXT NOT NULL, " +
+                DBManager.COLUMN_PASSWORD + " TEXT, " +
+                DBManager.COLUMN_IS_LOCKED + " INTEGER DEFAULT 0, " +
+                DBManager.COLUMN_IS_UNPUBLISHED + " INTEGER DEFAULT 0)");
+
+        db.execSQL("DROP TABLE IF EXISTS " + DBManager.TABLE_URL);
+        db.execSQL("CREATE TABLE " + DBManager.TABLE_URL + " (" +
+                DBManager.COLUMN_ID + " INTEGER PRIMARY KEY, " +
+                DBManager.COLUMN_FOLDER_ID + " INTEGER NOT NULL, " +
+                DBManager.COLUMN_URL + " TEXT NOT NULL, " +
+                DBManager.COLUMN_CREATED_DATE + " DATETIME DEFAULT CURRENT_TIMESTAMP)");
+
+        db.execSQL("DROP TABLE IF EXISTS " + DBManager.TABLE_IMAGE);
+        db.execSQL("CREATE TABLE " + DBManager.TABLE_IMAGE + " (" +
+                DBManager.COLUMN_ID + " INTEGER PRIMARY KEY, " +
+                DBManager.COLUMN_FOLDER_ID + " INTEGER NOT NULL, " +
+                DBManager.COLUMN_IMAGE + " BLOB NOT NULL, " +
+                DBManager.COLUMN_CREATED_DATE + " DATETIME DEFAULT CURRENT_TIMESTAMP)");
     }
 
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        if (oldVersion == 1) {
+            db.execSQL("DROP TABLE IF EXISTS category");
+            db.execSQL("DROP TABLE IF EXISTS url");
+            db.execSQL("DROP TABLE IF EXISTS image");
+        }
     }
 }
